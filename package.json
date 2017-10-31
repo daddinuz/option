@@ -1,0 +1,18 @@
+{
+  "name": "Option",
+  "repo": "daddinuz/Option",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Option type resembling Rust's Option.",
+  "keywords": [
+    "Option",
+    "Optional",
+    "Option-Type",
+    "Optional-Type"
+  ],
+  "src": [
+    "src/option.h",
+    "src/option.c"
+  ],
+  "makefile": "Option.cmake"
+}
