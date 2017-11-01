@@ -42,7 +42,7 @@ extern void __Option_panic(const char *message, const char *file, size_t line) _
  * Option_T type definitions, must be treated as opaque.
  */
 typedef struct Option_T {
-    void *const __some;
+    void *__some;
 } Option;
 
 /**
