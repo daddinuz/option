@@ -16,6 +16,7 @@
  * should be treated as private and should not be used directly.
  */
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #ifndef OPTION_INCLUDED

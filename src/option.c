@@ -6,9 +6,9 @@
  * Date:   October 31, 2017 
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "option.h"
 
 void __Option_panic(const char *message, const char *file, size_t line) {
