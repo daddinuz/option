@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.0)
 project(option)
 
 set(CMAKE_C_STANDARD 99)
@@ -9,23 +9,28 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 endif ()
 
 #####
+# Variable definitions
+###
+set(EXAMPLES_PATH ${PROJECT_SOURCE_DIR}/examples)
+set(PROJECT_PATH ${PROJECT_SOURCE_DIR}/sources)
+
+file(GLOB EXAMPLE_SOURCES ${EXAMPLES_PATH}/example*.c)
+file(GLOB PROJECT_HEADERS ${PROJECT_PATH}/*.h)
+file(GLOB PROJECT_SOURCES ${PROJECT_PATH}/*.c)
+
+#####
 # Working directories
 ###
-set(EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/examples)
-set(SOURCE_PATH ${PROJECT_SOURCE_DIR}/sources)
-include_directories(${SOURCE_PATH})
+include_directories(${PROJECT_PATH})
 
 #####
 # Archive
 ###
-file(GLOB HEADER_FILES ${SOURCE_PATH}/*.h)
-file(GLOB SOURCE_FILES ${SOURCE_PATH}/*.c)
-add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${PROJECT_NAME} ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 
 #####
 # Examples
 ###
-file(GLOB EXAMPLE_SOURCES ${EXAMPLE_PATH}/example*.c)
 foreach (source_file ${EXAMPLE_SOURCES})
     get_filename_component(target ${source_file} NAME_WE)
     add_executable(${target} ${source_file})
