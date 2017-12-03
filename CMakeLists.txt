@@ -12,7 +12,7 @@ endif ()
 # Working directories
 ###
 set(EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/examples)
-set(SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
+set(SOURCE_PATH ${PROJECT_SOURCE_DIR}/sources)
 include_directories(${SOURCE_PATH})
 
 #####

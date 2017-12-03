@@ -11,11 +11,11 @@
     "Optional-Type"
   ],
   "src": [
-    "src/immutable_option.c",
-    "src/immutable_option.h",
-    "src/mutable_option.c",
-    "src/mutable_option.h",
-    "src/option.h"
+    "sources/immutable_option.c",
+    "sources/immutable_option.h",
+    "sources/mutable_option.c",
+    "sources/mutable_option.h",
+    "sources/option.h"
   ],
   "makefile": "option.cmake"
 }
