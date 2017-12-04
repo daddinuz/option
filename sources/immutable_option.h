@@ -42,7 +42,7 @@ extern const ImmutableOption ImmutableOption_None;
  * @return A new ImmutableOption instance or ImmutableOption_None.
  */
 extern ImmutableOption
-ImmutableOption_new(void *some);
+ImmutableOption_new(const void *some);
 
 /**
  * Returns true if the option is a Some value.

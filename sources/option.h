@@ -23,10 +23,10 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.2.0"
+#define OPTION_VERSION          "0.2.1"
 #define OPTION_VERSION_MAJOR    0
 #define OPTION_VERSION_MINOR    2
-#define OPTION_VERSION_PATCH    0
+#define OPTION_VERSION_PATCH    1
 
 #include "mutable_option.h"
 #include "immutable_option.h"

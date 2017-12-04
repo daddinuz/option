@@ -21,7 +21,7 @@ __ImmutableOption_panic(const char *const file, const size_t line, const char *c
 const ImmutableOption ImmutableOption_None = {.__some=NULL};
 
 ImmutableOption
-ImmutableOption_new(void *value) {
+ImmutableOption_new(const void *value) {
     ImmutableOption self = (value) ? (ImmutableOption) {.__some=value} : ImmutableOption_None;
     return self;
 }
