@@ -37,7 +37,7 @@ int main() {
 
     printf("  Some: %s\n", MutableOption_isSome(string) ? "true" : "false");
     printf("  None: %s\n", MutableOption_isNone(string) ? "true" : "false");
-    printf("string: %s\n", (String_T) MutableOption_expect(string, "Needed a string"));
+    printf("string: %s\n", (String_T) MutableOption_expect(string, "%s", "Needed a string"));
 
     assert_eq(true, MutableOption_isNone(MutableOption_new(NULL)));
     assert_eq_str("Hello!", MutableOption_unwrap(MutableOption_map(MutableOption_new("Hi!"), Greet)));

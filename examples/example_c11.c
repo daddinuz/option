@@ -1,14 +1,20 @@
-# Option
+/*
+ * C Source File
+ *
+ * Author: daddinuz
+ * email:  daddinuz@gmail.com
+ * Date:   December 12, 2017 
+ */
 
-Trying to resemble Rust's Option type in C.
-
-```C
 #include <stdio.h>
 #include <string.h>
 #include <option.h>
 
 #define truth(x)    ((x) ? "true" : "false")
 
+/*
+ *
+ */
 static MutableOption mutableMapFn(MutableOption option);
 static MutableOption mutableDefFn(void);
 
@@ -40,4 +46,26 @@ int main() {
 
     return 0;
 }
-```
+
+/*
+ * 
+ */
+MutableOption mutableMapFn(MutableOption option) {
+    (void) option;
+    static int counter = 1;
+    return counter-- > 0 ? MutableOption_new(strdup("Mutable Mapped String")) : MutableOption_None;
+}
+
+MutableOption mutableDefFn(void) {
+    return MutableOption_new(strdup("Mutable Default Mapped String"));
+}
+
+ImmutableOption immutableMapFn(ImmutableOption option) {
+    (void) option;
+    static int counter = 1;
+    return counter-- > 0 ? ImmutableOption_new("Immutable Mapped String") : ImmutableOption_None;
+}
+
+ImmutableOption immutableDefFn(void) {
+    return ImmutableOption_new("Immutable Default Mapped String");
+}

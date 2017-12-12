@@ -37,7 +37,7 @@ int main() {
 
     printf("  Some: %s\n", ImmutableOption_isSome(string) ? "true" : "false");
     printf("  None: %s\n", ImmutableOption_isNone(string) ? "true" : "false");
-    printf("string: %s\n", (String_T) ImmutableOption_expect(string, "Needed a string"));
+    printf("string: %s\n", (String_T) ImmutableOption_expect(string, "%s", "Needed a string"));
 
     assert_eq(true, ImmutableOption_isNone(ImmutableOption_new(NULL)));
     assert_eq_str("Hello!", ImmutableOption_unwrap(ImmutableOption_map(ImmutableOption_new("Hi!"), Greet)));

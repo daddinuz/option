@@ -1,7 +1,7 @@
 {
   "name": "option",
   "repo": "daddinuz/option",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "license": "MIT",
   "description": "Option type resembling Rust's Option.",
   "keywords": [
@@ -11,10 +11,7 @@
     "Optional-Type"
   ],
   "src": [
-    "sources/immutable_option.c",
-    "sources/immutable_option.h",
-    "sources/mutable_option.c",
-    "sources/mutable_option.h",
+    "sources/option.c",
     "sources/option.h"
   ],
   "makefile": "option.cmake"
