@@ -1,14 +1,15 @@
 {
   "name": "option",
   "repo": "daddinuz/option",
-  "version": "0.3.0",
+  "version": "0.10.0",
   "license": "MIT",
   "description": "Option type resembling Rust's Option.",
   "keywords": [
+    "Error Handling",
     "Option",
-    "Optional",
-    "Option-Type",
-    "Optional-Type"
+    "Result",
+    "Error",
+    "Monad"
   ],
   "src": [
     "sources/option.c",

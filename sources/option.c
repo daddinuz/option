@@ -3,12 +3,12 @@
  *
  * Author: daddinuz
  * email:  daddinuz@gmail.com
- * Date:   December 12, 2017 
+ * Date:   January 10, 2018
  */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <assert.h>
 #include "option.h"
 
@@ -16,133 +16,117 @@
  * Common
  */
 static void
-Option_panic(const char *file, size_t line, const char *format, va_list args)
+panic(const char *file, size_t line, const char *format, va_list args)
 __attribute__((__nonnull__, __noreturn__, __format__(__printf__, 3, 0)));
 
 /*
- * Mutable Option
+ * Option
  */
-const MutableOption MutableOption_None = {.__some=NULL};
+const Option None = {.__data=NULL};
 
-MutableOption
-MutableOption_new(void *value) {
-    MutableOption self = (value) ? (MutableOption) {.__some=value} : MutableOption_None;
+Option Option_new(const void *data) {
+    Option self = (data) ? (Option) {.__data=data} : None;
     return self;
 }
 
-bool
-MutableOption_isSome(MutableOption self) {
-    return NULL != self.__some;
+bool Option_isSome(Option self) {
+    return NULL != self.__data;
 }
 
-bool
-MutableOption_isNone(MutableOption self) {
-    return NULL == self.__some;
+bool Option_isNone(Option self) {
+    return NULL == self.__data;
 }
 
-void *
-__MutableOption_expect(const char *__file, size_t __line, MutableOption self, const char *format, ...) {
+const void *__Option_expect(const char *__file, size_t __line, Option self, const char *format, ...) {
     assert(__file);
     assert(format);
-    if (MutableOption_isNone(self)) {
+    if (Option_isNone(self)) {
         va_list args;
         va_start(args, format);
-        Option_panic(__file, __line, format, args);
+        panic(__file, __line, format, args);
     }
-    return self.__some;
+    return self.__data;
 }
 
-void *
-__MutableOption_unwrap(const char *__file, size_t __line, MutableOption self) {
+const void *__Option_unwrap(const char *__file, size_t __line, Option self) {
     assert(__file);
-    return __MutableOption_expect(__file, __line, self, "%s", "Unable to unwrap value.");
+    return __Option_expect(__file, __line, self, "%s", "Unable to unwrap value.");
 }
 
-MutableOption
-MutableOption_map(MutableOption self, MutableOption mapFn(MutableOption)) {
+Option Option_map(Option self, Option mapFn(Option)) {
     assert(mapFn);
     return mapFn(self);
 }
 
-MutableOption
-MutableOption_mapOr(MutableOption self, MutableOption def, MutableOption mapFn(MutableOption)) {
+Option Option_mapOr(Option self, Option def, Option mapFn(Option)) {
     assert(mapFn);
-    return MutableOption_isSome(self) ? mapFn(self) : def;
+    return Option_isSome(self) ? mapFn(self) : def;
 }
 
-MutableOption
-MutableOption_mapOrElse(MutableOption self, MutableOption defFn(void), MutableOption mapFn(MutableOption)) {
+Option Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option)) {
     assert(defFn);
     assert(mapFn);
-    return MutableOption_isSome(self) ? mapFn(self) : defFn();
+    return Option_isSome(self) ? mapFn(self) : defFn();
 }
 
 /*
- * Immutable Option
+ * Default errors definitions
  */
-const ImmutableOption ImmutableOption_None = {.__some=NULL};
+Error Ok = Error_new("Ok");
 
-ImmutableOption
-ImmutableOption_new(const void *value) {
-    ImmutableOption self = (value) ? (ImmutableOption) {.__some=value} : ImmutableOption_None;
-    return self;
+/*
+ * Result
+ */
+Result Result_ok(const void *data) {
+    return (Result) {.__data=data, .__error=&Ok};
 }
 
-bool
-ImmutableOption_isSome(ImmutableOption self) {
-    return NULL != self.__some;
+Result Result_error(Error *error) {
+    assert(error);
+    assert(&Ok != error);
+    return (Result) {.__data=NULL, .__error=error};
 }
 
-bool
-ImmutableOption_isNone(ImmutableOption self) {
-    return NULL == self.__some;
+bool Result_isOk(Result self) {
+    return &Ok == self.__error ? true : false;
 }
 
-const void *
-__ImmutableOption_expect(const char *__file, size_t __line, ImmutableOption self, const char *format, ...) {
+bool Result_isError(Result self) {
+    return !Result_isOk(self);
+}
+
+const void *__Result_expect(const char *__file, size_t __line, Result self, const char *format, ...) {
     assert(__file);
     assert(format);
-    if (ImmutableOption_isNone(self)) {
+    if (Result_isError(self)) {
         va_list args;
         va_start(args, format);
-        Option_panic(__file, __line, format, args);
+        panic(__file, __line, format, args);
     }
-    return self.__some;
+    return self.__data;
 }
 
-const void *
-__ImmutableOption_unwrap(const char *__file, size_t __line, ImmutableOption self) {
+const void *__Result_unwrap(const char *__file, size_t __line, Result self) {
     assert(__file);
-    return __ImmutableOption_expect(__file, __line, self, "%s", "Unable to unwrap value.");
+    return __Result_expect(__file, __line, self, "%s", self.__error->message);
 }
 
-ImmutableOption
-ImmutableOption_map(ImmutableOption self, ImmutableOption mapFn(ImmutableOption)) {
-    assert(mapFn);
-    return mapFn(self);
+Error *Result_inspect(Result self) {
+    return self.__error;
 }
 
-ImmutableOption
-ImmutableOption_mapOr(ImmutableOption self, ImmutableOption def, ImmutableOption mapFn(ImmutableOption)) {
-    assert(mapFn);
-    return ImmutableOption_isSome(self) ? mapFn(self) : def;
-}
-
-ImmutableOption
-ImmutableOption_mapOrElse(ImmutableOption self, ImmutableOption defFn(void), ImmutableOption mapFn(ImmutableOption)) {
-    assert(defFn);
-    assert(mapFn);
-    return ImmutableOption_isSome(self) ? mapFn(self) : defFn();
+const char *Result_explain(Result self) {
+    return self.__error->message;
 }
 
 /*
- *
+ * Common
  */
-void Option_panic(const char *const file, const size_t line, const char *const format, va_list args) {
+void panic(const char *const file, const size_t line, const char *const format, va_list args) {
     assert(file);
     assert(format);
     fflush(stdout);
-    fprintf(stderr, "\nAt: %s:%zu\nError: ", file, line);
+    fprintf(stderr, "\nFrom: %s:%d\nAt: %s:%zu\nError: ", __FILE__, __LINE__, file, line);
     vfprintf(stderr, format, args);
     fputs("\n", stderr);
     va_end(args);

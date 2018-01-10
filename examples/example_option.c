@@ -1,8 +1,11 @@
-# Option
+/*
+ * C Source File
+ *
+ * Author: daddinuz
+ * email:  daddinuz@gmail.com
+ * Date:   January 10, 2018
+ */
 
-Trying to resemble Rust's Option type in C.
-
-```C
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -61,4 +64,3 @@ OptionOf(char *) String_mapFn(OptionOf(char *) optionalString) {
 OptionOf(char *) String_defFn(void) {
     return String_new("Computed string");
 }
-```

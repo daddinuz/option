@@ -3,17 +3,7 @@
  *
  * Author: daddinuz
  * email:  daddinuz@gmail.com
- * Date:   December 3, 2017
- */
-
-/*
- * Option type trying to resemble Rust's Option.
- * Here Option is basically a wrapper around NULL values
- * in order make safer code avoiding to directly deref
- * pointers without NULL checking and getting segfaults.
- *
- * Any function or member that starts with underscores
- * should be treated as private and should not be used directly.
+ * Date:   January 10, 2018
  */
 
 #ifndef OPTION_INCLUDED
@@ -23,9 +13,9 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.3.0"
+#define OPTION_VERSION          "0.10.0"
 #define OPTION_VERSION_MAJOR    0
-#define OPTION_VERSION_MINOR    3
+#define OPTION_VERSION_MINOR    10
 #define OPTION_VERSION_PATCH    0
 
 #include <stddef.h>
@@ -35,278 +25,277 @@ extern "C" {
 #define __attribute__(...)
 #endif
 
-/*
- * Mutable Option
- */
-
 /**
- * MutableOption type should never be used directly.
- * Must be treated as opaque.
- */
-typedef struct MutableOption_T {
-    void *__some;
-} MutableOption;
-
-/**
- * Just for type hinting
- */
-#define MutableOptional(Type) MutableOption
-
-/**
- * The None MutableOption instance
- */
-extern const MutableOption MutableOption_None;
-
-/**
- * Creates an MutableOption starting from some value.
- * If @param some is NULL returns MutableOption_None.
+ * Option represents encapsulation of an optional value; it is used as the return type of functions which may or may
+ * not return a meaningful value when they are applied.
  *
- * @param some The option value.
- * @return A new MutableOption instance or MutableOption_None.
+ * @attention
+ *  Option type must be treated as opaque therefore should be used only through the functions exported by this interface,
+ *  its members should never be accessed directly.
  */
-extern MutableOption
-MutableOption_new(void *some);
+typedef struct {
+    const void *__data;
+} Option;
 
 /**
- * Returns true if the option is a Some value.
+ * An helper macro used for type hinting, useful when writing interfaces.
+ * By convention the annotated type is the wrapped data type.
+ */
+#define OptionOf(xType) \
+    Option
+
+/**
+ * The None Option instance used instead of NULL to represent the absence of a value.
+ */
+extern const Option None;
+
+/**
+ * Creates an Option.
  *
- * @param self The MutableOption instance.
- * @return true if is Some value else false.
+ * @param data The optional value.
+ * @return None if data is NULL else a new Option instance wrapping data.
+ */
+extern Option
+Option_new(const void *data);
+
+/**
+ * Tests if Option is None
+ *
+ * @param self The Option instance.
+ * @return false if Option is None else true.
  */
 extern bool
-MutableOption_isSome(MutableOption self);
+Option_isSome(Option self);
 
 /**
- * Returns true if the option is a None value.
+ * Tests if Option is None
  *
- * @param self The MutableOption instance.
- * @return true if is None value else false.
+ * @param self The Option instance.
+ * @return true if Option is None else false.
  */
 extern bool
-MutableOption_isNone(MutableOption self);
+Option_isNone(Option self);
 
 /**
- * Unwraps an option, yielding the content of a Some.
- * Panics if the value is a None with a custom panic message.
+ * Unwraps an Option, yielding its wrapped value if it's not None.
+ * Aborts execution if Option is None with a custom panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
  *
  * @param __file The file name.
  * @param __line The line number.
- * @param self The MutableOption instance.
- * @param format The custom error message.
+ * @param self The Option instance.
+ * @param format The custom panic message.
  * @param ... The format params.
- * @return The unwrapped option or terminates the execution.
- */
-extern void *
-__MutableOption_expect(const char *__file, size_t __line, MutableOption self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
-
-#define MutableOption_expect(Self, ...) \
-    __MutableOption_expect(__FILE__, __LINE__, (Self), __VA_ARGS__)
-
-/**
- * Unwraps an option, yielding the content of a Some.
- * Panics if the value is a None with a predefined panic message.
- *
- * @param __file The file name.
- * @param __line The line number.
- * @param self The MutableOption instance.
- * @return The unwrapped option or terminates the execution.
- */
-extern void *
-__MutableOption_unwrap(const char *__file, size_t __line, MutableOption self)
-__attribute__((__nonnull__(1)));
-
-#define MutableOption_unwrap(Self)      \
-    __MutableOption_unwrap(__FILE__, __LINE__, (Self))
-
-/**
- * Maps an MutableOption<T> to MutableOption<U> by applying a function to a contained value.
- *
- * Checked runtime errors:
- *      - @param mapFn must not be NULL.
- *
- * @param self The MutableOption instance.
- * @param mapFn The map function.
- * @return A new MutableOption instance.
- */
-extern MutableOption
-MutableOption_map(MutableOption self, MutableOption mapFn(MutableOption))
-__attribute__((__nonnull__));
-
-/**
- * Applies a function to the contained value (if any), or returns a default (if not).
- *
- * Checked runtime errors:
- *      - @param mapFn must not be NULL.
- *
- * @param self The MutableOption instance.
- * @param def The default option if self is None.
- * @param mapFn The map function.
- * @return A new MutableOption instance.
- */
-extern MutableOption
-MutableOption_mapOr(MutableOption self, MutableOption def, MutableOption mapFn(MutableOption))
-__attribute__((__nonnull__));
-
-/**
- * Applies a function to the contained value (if any), or computes a default (if not).
- *
- * Checked runtime errors:
- *      - @param defFn must not be NULL.
- *      - @param mapFn must not be NULL.
- *
- * @param self The MutableOption instance.
- * @param def The default function to compute if self is None.
- * @param mapFn The map function.
- * @return A new MutableOption instance.
- */
-extern MutableOption
-MutableOption_mapOrElse(MutableOption self, MutableOption defFn(void), MutableOption mapFn(MutableOption))
-__attribute__((__nonnull__));
-
-/*
- * Immutable Option
- */
-
-
-/**
- * ImmutableOption type should never be used directly.
- * Must be treated as opaque.
- */
-typedef struct ImmutableOption_T {
-    const void *__some;
-} ImmutableOption;
-
-/**
- * Just for type hinting
- */
-#define ImmutableOptional(Type) ImmutableOption
-
-/**
- * The None ImmutableOption instance
- */
-extern const ImmutableOption ImmutableOption_None;
-
-/**
- * Creates an ImmutableOption starting from some value.
- * If @param some is NULL returns ImmutableOption_None.
- *
- * @param some The option value.
- * @return A new ImmutableOption instance or ImmutableOption_None.
- */
-extern ImmutableOption
-ImmutableOption_new(const void *some);
-
-/**
- * Returns true if the option is a Some value.
- *
- * @param self The ImmutableOption instance.
- * @return true if is Some value else false.
- */
-extern bool
-ImmutableOption_isSome(ImmutableOption self);
-
-/**
- * Returns true if the option is a None value.
- *
- * @param self The ImmutableOption instance.
- * @return true if is None value else false.
- */
-extern bool
-ImmutableOption_isNone(ImmutableOption self);
-
-/**
- * Unwraps an option, yielding the content of a Some.
- * Panics if the value is a None with a custom panic message.
- *
- * @param __file The file name.
- * @param __line The line number.
- * @param self The ImmutableOption instance.
- * @param format The custom error message.
- * @param ... The format params.
- * @return The unwrapped option or terminates the execution.
+ * @return The unwrapped value or terminates the execution.
  */
 extern const void *
-__ImmutableOption_expect(const char *__file, size_t __line, ImmutableOption self, const char *format, ...)
+__Option_expect(const char *__file, size_t __line, Option self, const char *format, ...)
 __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
-#define ImmutableOption_expect(Self, ...)   \
-    __ImmutableOption_expect(__FILE__, __LINE__, (Self), __VA_ARGS__)
+/**
+ * @see __Option_expect(const char *__file, size_t __line, Option self, const char *format, ...)
+ */
+#define Option_expect(xSelf, ...) \
+  __Option_expect(__FILE__, __LINE__, (xSelf), __VA_ARGS__)
 
 /**
- * Unwraps an option, yielding the content of a Some.
- * Panics if the value is a None with a predefined panic message.
+ * Unwraps an Option, yielding its wrapped value if it's not None.
+ * Aborts execution if Option is None with a pre-defined panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
  *
  * @param __file The file name.
  * @param __line The line number.
- * @param self The ImmutableOption instance.
- * @return The unwrapped option or terminates the execution.
+ * @param self The Option instance.
+ * @return The unwrapped value or terminates the execution.
  */
 extern const void *
-__ImmutableOption_unwrap(const char *__file, size_t __line, ImmutableOption self)
+__Option_unwrap(const char *__file, size_t __line, Option self)
 __attribute__((__nonnull__(1)));
 
-#define ImmutableOption_unwrap(Self)        \
-    __ImmutableOption_unwrap(__FILE__, __LINE__, (Self))
+/**
+ * @see __Option_unwrap(const char *__file, size_t __line, Option self)
+ */
+#define Option_unwrap(xSelf) \
+  __Option_unwrap(__FILE__, __LINE__, (xSelf))
 
 /**
- * Maps an ImmutableOption<T> to ImmutableOption<U> by applying a function to a contained value.
+ * Maps self applying mapFn.
  *
- * Checked runtime errors:
- *      - @param mapFn must not be NULL.
- *
- * @param self The ImmutableOption instance.
- * @param mapFn The map function.
- * @return A new ImmutableOption instance.
+ * @param self The Option instance.
+ * @param mapFn The map function [<b>must not be NULL</b>].
+ * @return The mapped Option instance.
  */
-extern ImmutableOption
-ImmutableOption_map(ImmutableOption self, ImmutableOption mapFn(ImmutableOption))
+extern Option
+Option_map(Option self, Option mapFn(Option))
 __attribute__((__nonnull__));
 
 /**
- * Applies a function to the contained value (if any), or returns a default (if not).
+ * Maps self applying mapFn if self is not None, otherwise returns a default Option.
  *
- * Checked runtime errors:
- *      - @param mapFn must not be NULL.
- *
- * @param self The ImmutableOption instance.
- * @param def The default option if self is None.
- * @param mapFn The map function.
- * @return A new ImmutableOption instance.
+ * @param self The Option instance.
+ * @param def The default option.
+ * @param mapFn The map function [<b>must not be NULL</b>].
+ * @return The mapped Option instance.
  */
-extern ImmutableOption
-ImmutableOption_mapOr(ImmutableOption self, ImmutableOption def, ImmutableOption mapFn(ImmutableOption))
+extern Option
+Option_mapOr(Option self, Option def, Option mapFn(Option))
 __attribute__((__nonnull__));
 
 /**
- * Applies a function to the contained value (if any), or computes a default (if not).
+ * Maps self applying mapFn if self is not None, otherwise compute a default Option applying defFn.
  *
- * Checked runtime errors:
- *      - @param defFn must not be NULL.
- *      - @param mapFn must not be NULL.
- *
- * @param self The ImmutableOption instance.
- * @param def The default function to compute if self is None.
- * @param mapFn The map function.
- * @return A new ImmutableOption instance.
+ * @param self The Option instance.
+ * @param defFn The default function to compute if self is None [<b>must not be NULL</b>].
+ * @param mapFn The map function to apply if self is not None [<b>must not be NULL</b>].
+ * @return The mapped Option instance.
  */
-extern ImmutableOption
-ImmutableOption_mapOrElse(ImmutableOption self, ImmutableOption defFn(void), ImmutableOption mapFn(ImmutableOption))
+extern Option
+Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option))
 __attribute__((__nonnull__));
 
-/*
- * C11 Support
+/**
+ * Error represents applicative errors that may occur at runtime.
  */
+typedef struct {
+    const char *message;
+} const Error;
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#define Option_isSome(x)                    _Generic((x), MutableOption: MutableOption_isSome, ImmutableOption: ImmutableOption_isSome)((x))
-#define Option_isNone(x)                    _Generic((x), MutableOption: MutableOption_isNone, ImmutableOption: ImmutableOption_isNone)((x))
-#define Option_expect(x, ...)               _Generic((x), MutableOption: __MutableOption_expect, ImmutableOption: __ImmutableOption_expect)(__FILE__, __LINE__, (x), __VA_ARGS__)
-#define Option_unwrap(x)                    _Generic((x), MutableOption: __MutableOption_unwrap, ImmutableOption: __ImmutableOption_unwrap)(__FILE__, __LINE__, (x))
-#define Option_map(x, mapFn)                _Generic((x), MutableOption: MutableOption_map, ImmutableOption: ImmutableOption_map)((x), (mapFn))
-#define Option_mapOr(x, def, mapFn)         _Generic((x), MutableOption: MutableOption_mapOr, ImmutableOption: ImmutableOption_mapOr)((x), (def), (mapFn))
-#define Option_mapOrElse(x, defFn, mapFn)   _Generic((x), MutableOption: MutableOption_mapOrElse, ImmutableOption: ImmutableOption_mapOrElse)((x), (defFn), (mapFn))
-#endif
+/**
+ * Helper function to create new errors
+ */
+#define Error_new(xMessage) \
+    {.message=(xMessage)}
+
+/**
+ * The Ok Error instance to notify a successful execution.
+ */
+extern Error Ok;
+
+/**
+ * Result holds a returned value or an error code providing a way of handling errors, without resorting to exception
+ * handling; when a function that may fail returns a result type, the programmer is forced to consider success or failure
+ * paths, before getting access to the expected result; this eliminates the possibility of an erroneous programmer assumption.
+ *
+  * @attention
+ *  Result type must be treated as opaque therefore should be used only through the functions exported by this interface,
+ *  its members should never be accessed directly.
+ */
+typedef struct {
+    const void *__data;
+    Error *__error;
+} Result;
+
+/**
+ * An helper macro used for type hinting, useful when writing interfaces.
+ * By convention the first annotated type is the wrapped data type, every types following are Error types.
+ */
+#define ResultOf(...) \
+    Result
+
+/**
+ * Creates a Result notifying a successful execution.
+ *
+ * @param data The result value.
+ * @return A new Result instance wrapping data.
+ */
+extern Result
+Result_ok(const void *data);
+
+/**
+ * Creates a Result notifying a unsuccessful execution.
+ *
+ * @param data The result value.
+ * @return A new Result instance wrapping an error.
+ */
+extern Result
+Result_error(Error *error)
+__attribute__((__nonnull__));
+
+/**
+ * Tests if Result is Ok
+ *
+ * @param self The Result instance.
+ * @return true if Result is Ok else false.
+ */
+extern bool
+Result_isOk(Result self);
+
+/**
+ * Tests if Result is Error
+ *
+ * @param self The Result instance.
+ * @return true if Result is Error else false.
+ */
+extern bool
+Result_isError(Result self);
+
+/**
+ * Unwraps a Result, yielding its wrapped value if it's Ok .
+ * Aborts execution if Result is Error with a custom panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
+ *
+ * @param __file The file name.
+ * @param __line The line number.
+ * @param self The Result instance.
+ * @param format The custom panic message.
+ * @param ... The format params.
+ * @return The unwrapped value or terminates the execution.
+ */
+extern const void *
+__Result_expect(const char *__file, size_t __line, Result self, const char *format, ...)
+__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+
+/**
+ * @see __Result_expect(const char *__file, size_t __line, Result self, const char *format, ...)
+ */
+#define Result_expect(xSelf, ...) \
+  __Result_expect(__FILE__, __LINE__, (xSelf), __VA_ARGS__)
+
+/**
+ * Unwraps a Result, yielding its wrapped value if it's Ok .
+ * Aborts execution if Result is Error with a pre-defined panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
+ *
+ * @param __file The file name.
+ * @param __line The line number.
+ * @param self The Result instance.
+ * @return The unwrapped value or terminates the execution.
+ */
+extern const void *
+__Result_unwrap(const char *__file, size_t __line, Result self)
+__attribute__((__nonnull__(1)));
+
+/**
+ * @see __Result_unwrap(const char *__file, size_t __line, Result self)
+ */
+#define Result_unwrap(xSelf) \
+  __Result_unwrap(__FILE__, __LINE__, (xSelf))
+
+/**
+ * Inspects the result error.
+ *
+ * @param self The Result instance.
+ * @return The Error associated to the result.
+ */
+extern Error *
+Result_inspect(Result self);
+
+/**
+ * Explains the result error.
+ *
+ * @param self The Result instance.
+ * @return An explanation string.
+ */
+extern const char *
+Result_explain(Result self);
 
 #ifdef __cplusplus
 }
