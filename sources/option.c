@@ -24,7 +24,7 @@ __attribute__((__nonnull__, __noreturn__, __format__(__printf__, 3, 0)));
  */
 const Option None = {.__data=NULL};
 
-Option Option_new(const void *data) {
+Option Option_new(void *data) {
     Option self = (data) ? (Option) {.__data=data} : None;
     return self;
 }
@@ -37,7 +37,7 @@ bool Option_isNone(Option self) {
     return NULL == self.__data;
 }
 
-const void *__Option_expect(const char *__file, size_t __line, Option self, const char *format, ...) {
+void *__Option_expect(const char *__file, size_t __line, Option self, const char *format, ...) {
     assert(__file);
     assert(format);
     if (Option_isNone(self)) {
@@ -48,7 +48,7 @@ const void *__Option_expect(const char *__file, size_t __line, Option self, cons
     return self.__data;
 }
 
-const void *__Option_unwrap(const char *__file, size_t __line, Option self) {
+void *__Option_unwrap(const char *__file, size_t __line, Option self) {
     assert(__file);
     return __Option_expect(__file, __line, self, "%s", "Unable to unwrap value.");
 }
@@ -77,7 +77,7 @@ Error Ok = Error_new("Ok");
 /*
  * Result
  */
-Result Result_ok(const void *data) {
+Result Result_ok(void *data) {
     return (Result) {.__data=data, .__error=&Ok};
 }
 
@@ -95,7 +95,7 @@ bool Result_isError(Result self) {
     return !Result_isOk(self);
 }
 
-const void *__Result_expect(const char *__file, size_t __line, Result self, const char *format, ...) {
+void *__Result_expect(const char *__file, size_t __line, Result self, const char *format, ...) {
     assert(__file);
     assert(format);
     if (Result_isError(self)) {
@@ -106,7 +106,7 @@ const void *__Result_expect(const char *__file, size_t __line, Result self, cons
     return self.__data;
 }
 
-const void *__Result_unwrap(const char *__file, size_t __line, Result self) {
+void *__Result_unwrap(const char *__file, size_t __line, Result self) {
     assert(__file);
     return __Result_expect(__file, __line, self, "%s", self.__error->message);
 }

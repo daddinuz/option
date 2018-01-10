@@ -34,7 +34,7 @@ extern "C" {
  *  its members should never be accessed directly.
  */
 typedef struct {
-    const void *__data;
+    void *__data;
 } Option;
 
 /**
@@ -56,7 +56,7 @@ extern const Option None;
  * @return None if data is NULL else a new Option instance wrapping data.
  */
 extern Option
-Option_new(const void *data);
+Option_new(void *data);
 
 /**
  * Tests if Option is None
@@ -90,7 +90,7 @@ Option_isNone(Option self);
  * @param ... The format params.
  * @return The unwrapped value or terminates the execution.
  */
-extern const void *
+extern void *
 __Option_expect(const char *__file, size_t __line, Option self, const char *format, ...)
 __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
@@ -112,7 +112,7 @@ __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
  * @param self The Option instance.
  * @return The unwrapped value or terminates the execution.
  */
-extern const void *
+extern void *
 __Option_unwrap(const char *__file, size_t __line, Option self)
 __attribute__((__nonnull__(1)));
 
@@ -185,7 +185,7 @@ extern Error Ok;
  *  its members should never be accessed directly.
  */
 typedef struct {
-    const void *__data;
+    void *__data;
     Error *__error;
 } Result;
 
@@ -203,7 +203,7 @@ typedef struct {
  * @return A new Result instance wrapping data.
  */
 extern Result
-Result_ok(const void *data);
+Result_ok(void *data);
 
 /**
  * Creates a Result notifying a unsuccessful execution.
@@ -247,7 +247,7 @@ Result_isError(Result self);
  * @param ... The format params.
  * @return The unwrapped value or terminates the execution.
  */
-extern const void *
+extern void *
 __Result_expect(const char *__file, size_t __line, Result self, const char *format, ...)
 __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
@@ -269,7 +269,7 @@ __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
  * @param self The Result instance.
  * @return The unwrapped value or terminates the execution.
  */
-extern const void *
+extern void *
 __Result_unwrap(const char *__file, size_t __line, Result self)
 __attribute__((__nonnull__(1)));
 
