@@ -13,10 +13,10 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.10.0"
+#define OPTION_VERSION          "0.10.1"
 #define OPTION_VERSION_MAJOR    0
 #define OPTION_VERSION_MINOR    10
-#define OPTION_VERSION_PATCH    0
+#define OPTION_VERSION_PATCH    1
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -296,6 +296,17 @@ Result_inspect(Result self);
  */
 extern const char *
 Result_explain(Result self);
+
+/*
+ * C11 Support
+ */
+
+#if !defined(OPTION_DISABLE_C11_SUPPORT) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    #define expect(x, ...) \
+        _Generic((x), Option: __Option_expect, Result: __Result_expect)(__FILE__, __LINE__, (x), __VA_ARGS__)
+    #define unwrap(x) \
+        _Generic((x), Option: __Option_unwrap, Result: __Result_unwrap)(__FILE__, __LINE__, (x))
+#endif
 
 #ifdef __cplusplus
 }

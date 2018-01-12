@@ -36,3 +36,5 @@ foreach (source_file ${EXAMPLE_SOURCES})
     add_executable(${target} ${source_file})
     target_link_libraries(${target} PRIVATE ${PROJECT_NAME})
 endforeach (source_file ${EXAMPLE_SOURCES})
+
+set_property(TARGET example_c11 PROPERTY C_STANDARD 11)
