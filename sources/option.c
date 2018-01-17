@@ -72,7 +72,7 @@ Option Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option)) {
 /*
  * Error
  */
-const struct __Error *const Ok = Error_new("Ok");
+const Error Ok = Error_new("Ok");
 
 void __Error_expect(const char *__file, size_t __line, Error self, const char *format, ...) {
     assert(__file);
@@ -126,7 +126,7 @@ void *__Result_unwrap(const char *__file, size_t __line, Result self) {
     return __Result_expect(__file, __line, self, "%s", self.__error->message);
 }
 
-const struct __Error *Result_inspect(Result self) {
+Error Result_inspect(Result self) {
     return self.__error;
 }
 

@@ -17,8 +17,8 @@
 #define truth(x) \
     ((x) ? "true" : "false")
 
-Error OutOfMemory = Error_new("Out of memory");
-Error TooLongString = Error_new("Too long string");
+const Error OutOfMemory = Error_new("Out of memory");
+const Error TooLongString = Error_new("Too long string");
 
 static ResultOf(char *, OutOfMemory, TooLongString)
 SmallString_new(const char *literal);

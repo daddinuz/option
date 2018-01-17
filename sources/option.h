@@ -13,10 +13,10 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.11.0"
+#define OPTION_VERSION          "0.11.1"
 #define OPTION_VERSION_MAJOR    0
 #define OPTION_VERSION_MINOR    11
-#define OPTION_VERSION_PATCH    0
+#define OPTION_VERSION_PATCH    1
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -168,18 +168,30 @@ __attribute__((__nonnull__));
  */
 typedef struct __Error {
     const char *message;
-} const *const Error;
+} const *Error;
 
 /**
- * Helper function to create new errors
+ * An helper macro used for type hinting, useful when writing interfaces.
+ * By convention the annotations are the errors that may be returned.
+ */
+#define OneOf(...) \
+    Error
+
+/**
+ * Helper macro to create new singleton errors.
+ * This macro should be used only to define new global errors, and Errors defined with this macro must be declared const:
+ *
+ * @code
+ * const Error OutOfMemoryError = Error_new("Out of memory");
+ * @endcode
  */
 #define Error_new(xMessage) \
-     ((const struct __Error *const) &((const struct __Error) {.message=(xMessage)}))
+     ((Error) &((const struct __Error) {.message=(xMessage)}))
 
 /**
  * The Ok Error instance to notify a successful execution.
  */
-extern Error Ok;
+extern const Error Ok;
 
 /**
  * Unwraps an Error, aborts execution if Error is not Ok with a custom panic message.
@@ -235,7 +247,7 @@ __attribute__((__nonnull__(1)));
  */
 typedef struct __Result {
     void *__data;
-    const struct __Error *__error;
+    Error __error;
 } Result;
 
 /**
@@ -334,7 +346,7 @@ __attribute__((__nonnull__(1)));
  * @param self The Result instance.
  * @return The Error associated to the result.
  */
-extern const struct __Error *
+extern Error
 Result_inspect(Result self);
 
 /**
