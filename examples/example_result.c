@@ -20,7 +20,8 @@
 Error OutOfMemory = Error_new("Out of memory");
 Error TooLongString = Error_new("Too long string");
 
-static ResultOf(char *, OutOfMemory, TooLongString) SmallString_new(const char *literal);
+static ResultOf(char *, OutOfMemory, TooLongString)
+SmallString_new(const char *literal);
 
 /*
  *
@@ -31,7 +32,7 @@ int main() {
     printf("isOk: %s\n", truth(Result_isOk(result)));
     printf("isError: %s\n", truth(Result_isError(result)));
     printf("data: %s\n", (char *) Result_unwrap(result));
-    assert(&Ok == Result_inspect(result));
+    assert(Ok == Result_inspect(result));
 
     puts("----------------------------");
 
@@ -41,7 +42,7 @@ int main() {
     printf("isError: %s\n", truth(Result_isError(result)));
     printf("error: %s\n", Result_explain(result));
     // printf("data: %s\n", (const char *) Result_unwrap(result)); /* this would abort */
-    assert(&TooLongString == Result_inspect(result));
+    assert(TooLongString == Result_inspect(result));
 
     /* ------------------------------- */
 
@@ -58,9 +59,9 @@ ResultOf(char *, OutOfMemory, TooLongString) SmallString_new(const char *literal
     assert(literal);
 
     if (strlen(literal) > 16) {
-        return Result_error(&TooLongString);
+        return Result_error(TooLongString);
     }
 
     OptionOf(char *) optionalString = Option_new(strdup(literal));
-    return Option_isSome(optionalString) ? Result_ok(Option_unwrap(optionalString)) : Result_error(&OutOfMemory);
+    return Option_isSome(optionalString) ? Result_ok(Option_unwrap(optionalString)) : Result_error(OutOfMemory);
 }

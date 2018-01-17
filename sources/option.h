@@ -13,10 +13,10 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.10.1"
+#define OPTION_VERSION          "0.11.0"
 #define OPTION_VERSION_MAJOR    0
-#define OPTION_VERSION_MINOR    10
-#define OPTION_VERSION_PATCH    1
+#define OPTION_VERSION_MINOR    11
+#define OPTION_VERSION_PATCH    0
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -30,10 +30,11 @@ extern "C" {
  * not return a meaningful value when they are applied.
  *
  * @attention
+ *  The `struct __Option` type must be treated as opaque therefore should be used directly.
  *  Option type must be treated as opaque therefore should be used only through the functions exported by this interface,
  *  its members should never be accessed directly.
  */
-typedef struct {
+typedef struct __Option {
     void *__data;
 } Option;
 
@@ -158,17 +159,22 @@ Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option))
 __attribute__((__nonnull__));
 
 /**
- * Error represents applicative errors that may occur at runtime.
+ * Error represents recoverable errors that may occur at runtime.
+ * Every error instance must be a singleton, in order to check if two errors are equal a simple comparison
+ * between pointers can be done.
+ *
+ * @attention
+ *  The `struct __Error` type must be treated as opaque therefore should be used directly.
  */
-typedef struct {
+typedef struct __Error {
     const char *message;
-} const Error;
+} const *const Error;
 
 /**
  * Helper function to create new errors
  */
 #define Error_new(xMessage) \
-    {.message=(xMessage)}
+     ((const struct __Error *const) &((const struct __Error) {.message=(xMessage)}))
 
 /**
  * The Ok Error instance to notify a successful execution.
@@ -176,17 +182,60 @@ typedef struct {
 extern Error Ok;
 
 /**
+ * Unwraps an Error, aborts execution if Error is not Ok with a custom panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
+ *
+ * @param __file The file name.
+ * @param __line The line number.
+ * @param self The Error instance.
+ * @param format The custom panic message.
+ * @param ... The format params.
+ */
+extern void
+__Error_expect(const char *__file, size_t __line, Error self, const char *format, ...)
+__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+
+/**
+ * @see __Error_expect(const char *__file, size_t __line, Error self, const char *format, ...)
+ */
+#define Error_expect(xSelf, ...) \
+  __Error_expect(__FILE__, __LINE__, (xSelf), __VA_ARGS__)
+
+/**
+ * Unwraps an Error, aborts execution if Error is not Ok with a pre-defined panic message.
+ *
+ * @attention
+ *  This function should never be used directly, used the exported macro instead.
+ *
+ * @param __file The file name.
+ * @param __line The line number.
+ * @param self The Error instance.
+ */
+extern void
+__Error_unwrap(const char *__file, size_t __line, Error self)
+__attribute__((__nonnull__(1)));
+
+/**
+ * @see __Error_unwrap(const char *__file, size_t __line, Error self)
+ */
+#define Error_unwrap(xSelf) \
+  __Error_unwrap(__FILE__, __LINE__, (xSelf))
+
+/**
  * Result holds a returned value or an error code providing a way of handling errors, without resorting to exception
  * handling; when a function that may fail returns a result type, the programmer is forced to consider success or failure
  * paths, before getting access to the expected result; this eliminates the possibility of an erroneous programmer assumption.
  *
-  * @attention
+ * @attention
+ *  The `struct __Result` type must be treated as opaque therefore should be used directly.
  *  Result type must be treated as opaque therefore should be used only through the functions exported by this interface,
  *  its members should never be accessed directly.
  */
-typedef struct {
+typedef struct __Result {
     void *__data;
-    Error *__error;
+    const struct __Error *__error;
 } Result;
 
 /**
@@ -212,7 +261,7 @@ Result_ok(void *data);
  * @return A new Result instance wrapping an error.
  */
 extern Result
-Result_error(Error *error)
+Result_error(Error error)
 __attribute__((__nonnull__));
 
 /**
@@ -285,7 +334,7 @@ __attribute__((__nonnull__(1)));
  * @param self The Result instance.
  * @return The Error associated to the result.
  */
-extern Error *
+extern const struct __Error *
 Result_inspect(Result self);
 
 /**
@@ -302,10 +351,21 @@ Result_explain(Result self);
  */
 
 #if !defined(OPTION_DISABLE_C11_SUPPORT) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    #define expect(x, ...) \
-        _Generic((x), Option: __Option_expect, Result: __Result_expect)(__FILE__, __LINE__, (x), __VA_ARGS__)
-    #define unwrap(x) \
-        _Generic((x), Option: __Option_unwrap, Result: __Result_unwrap)(__FILE__, __LINE__, (x))
+    #define expect(x, ...)                                      \
+        _Generic((x),                                           \
+            Option                      :   __Option_expect,    \
+            Result                      :   __Result_expect,    \
+            const struct __Error *const :   __Error_expect,     \
+            const struct __Error *      :   __Error_expect      \
+        )(__FILE__, __LINE__, (x), __VA_ARGS__)
+
+    #define unwrap(x)                                           \
+        _Generic((x),                                           \
+            Option                      :   __Option_unwrap,    \
+            Result                      :   __Result_unwrap,    \
+            const struct __Error *const :   __Error_unwrap,     \
+            const struct __Error *      :   __Error_unwrap      \
+        )(__FILE__, __LINE__, (x))
 #endif
 
 #ifdef __cplusplus

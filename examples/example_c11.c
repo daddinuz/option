@@ -17,4 +17,7 @@ int main() {
     printf("%s %s!\n",
            (const char *) expect(Result_ok("Hello"), "Expected a string."),
            (const char *) expect(Option_new("World"), "Expected a string."));
+
+    unwrap(Ok);
+    expect(Ok, "Expected no errors");
 }

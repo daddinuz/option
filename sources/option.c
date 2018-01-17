@@ -70,29 +70,44 @@ Option Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option)) {
 }
 
 /*
- * Default errors definitions
+ * Error
  */
-Error Ok = Error_new("Ok");
+const struct __Error *const Ok = Error_new("Ok");
+
+void __Error_expect(const char *__file, size_t __line, Error self, const char *format, ...) {
+    assert(__file);
+    assert(format);
+    if (Ok != self) {
+        va_list args;
+        va_start(args, format);
+        panic(__file, __line, format, args);
+    }
+}
+
+void __Error_unwrap(const char *__file, size_t __line, Error self) {
+    assert(__file);
+    __Error_expect(__file, __line, self, "%s", self->message);
+}
 
 /*
  * Result
  */
 Result Result_ok(void *data) {
-    return (Result) {.__data=data, .__error=&Ok};
+    return (Result) {.__data=data, .__error=Ok};
 }
 
-Result Result_error(Error *error) {
+Result Result_error(Error error) {
     assert(error);
-    assert(&Ok != error);
+    assert(Ok != error);
     return (Result) {.__data=NULL, .__error=error};
 }
 
 bool Result_isOk(Result self) {
-    return &Ok == self.__error ? true : false;
+    return Ok == self.__error;
 }
 
 bool Result_isError(Result self) {
-    return !Result_isOk(self);
+    return Ok != self.__error;
 }
 
 void *__Result_expect(const char *__file, size_t __line, Result self, const char *format, ...) {
@@ -111,7 +126,7 @@ void *__Result_unwrap(const char *__file, size_t __line, Result self) {
     return __Result_expect(__file, __line, self, "%s", self.__error->message);
 }
 
-Error *Result_inspect(Result self) {
+const struct __Error *Result_inspect(Result self) {
     return self.__error;
 }
 
