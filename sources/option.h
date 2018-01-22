@@ -13,10 +13,10 @@
 extern "C" {
 #endif
 
-#define OPTION_VERSION          "0.11.1"
+#define OPTION_VERSION          "0.11.2"
 #define OPTION_VERSION_MAJOR    0
 #define OPTION_VERSION_MINOR    11
-#define OPTION_VERSION_PATCH    1
+#define OPTION_VERSION_PATCH    2
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -57,7 +57,8 @@ extern const Option None;
  * @return None if data is NULL else a new Option instance wrapping data.
  */
 extern Option
-Option_new(void *data);
+Option_new(void *data)
+__attribute__((__warn_unused_result__));
 
 /**
  * Tests if Option is None
@@ -66,7 +67,8 @@ Option_new(void *data);
  * @return false if Option is None else true.
  */
 extern bool
-Option_isSome(Option self);
+Option_isSome(Option self)
+__attribute__((__warn_unused_result__));
 
 /**
  * Tests if Option is None
@@ -75,7 +77,8 @@ Option_isSome(Option self);
  * @return true if Option is None else false.
  */
 extern bool
-Option_isNone(Option self);
+Option_isNone(Option self)
+__attribute__((__warn_unused_result__));
 
 /**
  * Unwraps an Option, yielding its wrapped value if it's not None.
@@ -93,7 +96,7 @@ Option_isNone(Option self);
  */
 extern void *
 __Option_expect(const char *__file, size_t __line, Option self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+__attribute__((__warn_unused_result__, __nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
 /**
  * @see __Option_expect(const char *__file, size_t __line, Option self, const char *format, ...)
@@ -115,7 +118,7 @@ __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
  */
 extern void *
 __Option_unwrap(const char *__file, size_t __line, Option self)
-__attribute__((__nonnull__(1)));
+__attribute__((__warn_unused_result__, __nonnull__(1)));
 
 /**
  * @see __Option_unwrap(const char *__file, size_t __line, Option self)
@@ -132,7 +135,7 @@ __attribute__((__nonnull__(1)));
  */
 extern Option
 Option_map(Option self, Option mapFn(Option))
-__attribute__((__nonnull__));
+__attribute__((__warn_unused_result__, __nonnull__));
 
 /**
  * Maps self applying mapFn if self is not None, otherwise returns a default Option.
@@ -144,7 +147,7 @@ __attribute__((__nonnull__));
  */
 extern Option
 Option_mapOr(Option self, Option def, Option mapFn(Option))
-__attribute__((__nonnull__));
+__attribute__((__warn_unused_result__, __nonnull__));
 
 /**
  * Maps self applying mapFn if self is not None, otherwise compute a default Option applying defFn.
@@ -156,7 +159,7 @@ __attribute__((__nonnull__));
  */
 extern Option
 Option_mapOrElse(Option self, Option defFn(void), Option mapFn(Option))
-__attribute__((__nonnull__));
+__attribute__((__warn_unused_result__, __nonnull__));
 
 /**
  * Error represents recoverable errors that may occur at runtime.
@@ -248,6 +251,7 @@ __attribute__((__nonnull__(1)));
 typedef struct __Result {
     void *__data;
     Error __error;
+    const char *__details;
 } Result;
 
 /**
@@ -264,17 +268,29 @@ typedef struct __Result {
  * @return A new Result instance wrapping data.
  */
 extern Result
-Result_ok(void *data);
+Result_ok(void *data)
+__attribute__((__warn_unused_result__));
 
 /**
  * Creates a Result notifying a unsuccessful execution.
  *
- * @param data The result value.
+ * @param error The Error instance.
  * @return A new Result instance wrapping an error.
  */
 extern Result
 Result_error(Error error)
-__attribute__((__nonnull__));
+__attribute__((__warn_unused_result__, __nonnull__));
+
+/**
+ * Creates a Result notifying a unsuccessful execution specifying reason.
+ *
+ * @param error The Error instance.
+ * @param details A detailed explanation of the result.
+ * @return A new Result instance wrapping an error.
+ */
+extern Result
+Result_errorWithDetails(Error error, const char *details)
+__attribute__((__warn_unused_result__, __nonnull__));
 
 /**
  * Tests if Result is Ok
@@ -283,7 +299,8 @@ __attribute__((__nonnull__));
  * @return true if Result is Ok else false.
  */
 extern bool
-Result_isOk(Result self);
+Result_isOk(Result self)
+__attribute__((__warn_unused_result__));
 
 /**
  * Tests if Result is Error
@@ -292,7 +309,8 @@ Result_isOk(Result self);
  * @return true if Result is Error else false.
  */
 extern bool
-Result_isError(Result self);
+Result_isError(Result self)
+__attribute__((__warn_unused_result__));
 
 /**
  * Unwraps a Result, yielding its wrapped value if it's Ok .
@@ -304,13 +322,13 @@ Result_isError(Result self);
  * @param __file The file name.
  * @param __line The line number.
  * @param self The Result instance.
- * @param format The custom panic message.
+ * @param format The custom panic message (overrides the associated Error panic message).
  * @param ... The format params.
  * @return The unwrapped value or terminates the execution.
  */
 extern void *
 __Result_expect(const char *__file, size_t __line, Result self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+__attribute__((__warn_unused_result__, __nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
 /**
  * @see __Result_expect(const char *__file, size_t __line, Result self, const char *format, ...)
@@ -320,7 +338,7 @@ __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
 /**
  * Unwraps a Result, yielding its wrapped value if it's Ok .
- * Aborts execution if Result is Error with a pre-defined panic message.
+ * Aborts execution if Result is Error with the error defined panic message.
  *
  * @attention
  *  This function should never be used directly, used the exported macro instead.
@@ -332,7 +350,7 @@ __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
  */
 extern void *
 __Result_unwrap(const char *__file, size_t __line, Result self)
-__attribute__((__nonnull__(1)));
+__attribute__((__warn_unused_result__, __nonnull__(1)));
 
 /**
  * @see __Result_unwrap(const char *__file, size_t __line, Result self)
@@ -347,36 +365,45 @@ __attribute__((__nonnull__(1)));
  * @return The Error associated to the result.
  */
 extern Error
-Result_inspect(Result self);
+Result_inspect(Result self)
+__attribute__((__warn_unused_result__));
 
 /**
  * Explains the result error.
  *
  * @param self The Result instance.
- * @return An explanation string.
+ * @return The Error message.
  */
 extern const char *
-Result_explain(Result self);
+Result_explain(Result self)
+__attribute__((__warn_unused_result__));
+
+/**
+ * A detailed explanation of the result error.
+ *
+ * @param self The Result instance.
+ * @return A detailed explanation of the error.
+ */
+extern const char *
+Result_details(Result self)
+__attribute__((__warn_unused_result__));
 
 /*
  * C11 Support
  */
-
 #if !defined(OPTION_DISABLE_C11_SUPPORT) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    #define expect(x, ...)                                      \
-        _Generic((x),                                           \
-            Option                      :   __Option_expect,    \
-            Result                      :   __Result_expect,    \
-            const struct __Error *const :   __Error_expect,     \
-            const struct __Error *      :   __Error_expect      \
+    #define expect(x, ...)                  \
+        _Generic((x),                       \
+            Option  :   __Option_expect,    \
+            Result  :   __Result_expect,    \
+            Error   :   __Error_expect      \
         )(__FILE__, __LINE__, (x), __VA_ARGS__)
 
-    #define unwrap(x)                                           \
-        _Generic((x),                                           \
-            Option                      :   __Option_unwrap,    \
-            Result                      :   __Result_unwrap,    \
-            const struct __Error *const :   __Error_unwrap,     \
-            const struct __Error *      :   __Error_unwrap      \
+    #define unwrap(x)                       \
+        _Generic((x),                       \
+            Option  :   __Option_unwrap,    \
+            Result  :   __Result_unwrap,    \
+            Error   :   __Error_unwrap      \
         )(__FILE__, __LINE__, (x))
 #endif
 

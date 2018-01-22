@@ -16,8 +16,8 @@
  * Common
  */
 static void
-panic(const char *file, size_t line, const char *format, va_list args)
-__attribute__((__nonnull__, __noreturn__, __format__(__printf__, 3, 0)));
+panic(const char *file, size_t line, const char *format, va_list args, const char *details)
+__attribute__((__nonnull__(1, 3, 4), __noreturn__, __format__(__printf__, 3, 0)));
 
 /*
  * Option
@@ -43,7 +43,7 @@ void *__Option_expect(const char *__file, size_t __line, Option self, const char
     if (Option_isNone(self)) {
         va_list args;
         va_start(args, format);
-        panic(__file, __line, format, args);
+        panic(__file, __line, format, args, NULL);
     }
     return self.__data;
 }
@@ -80,7 +80,7 @@ void __Error_expect(const char *__file, size_t __line, Error self, const char *f
     if (Ok != self) {
         va_list args;
         va_start(args, format);
-        panic(__file, __line, format, args);
+        panic(__file, __line, format, args, NULL);
     }
 }
 
@@ -93,13 +93,20 @@ void __Error_unwrap(const char *__file, size_t __line, Error self) {
  * Result
  */
 Result Result_ok(void *data) {
-    return (Result) {.__data=data, .__error=Ok};
+    return (Result) {.__data=data, .__error=Ok, .__details=NULL};
 }
 
 Result Result_error(Error error) {
     assert(error);
     assert(Ok != error);
-    return (Result) {.__data=NULL, .__error=error};
+    return (Result) {.__data=NULL, .__error=error, .__details=NULL};
+}
+
+Result Result_errorWithDetails(Error error, const char *details) {
+    assert(error);
+    assert(details);
+    assert(Ok != error);
+    return (Result) {.__data=NULL, .__error=error, .__details=details};
 }
 
 bool Result_isOk(Result self) {
@@ -116,7 +123,7 @@ void *__Result_expect(const char *__file, size_t __line, Result self, const char
     if (Result_isError(self)) {
         va_list args;
         va_start(args, format);
-        panic(__file, __line, format, args);
+        panic(__file, __line, format, args, self.__details);
     }
     return self.__data;
 }
@@ -134,15 +141,22 @@ const char *Result_explain(Result self) {
     return self.__error->message;
 }
 
+const char *Result_details(Result self) {
+    return self.__details ? self.__details : "";
+}
+
 /*
  * Common
  */
-void panic(const char *const file, const size_t line, const char *const format, va_list args) {
+void panic(const char *file, size_t line, const char *format, va_list args, const char *details) {
     assert(file);
     assert(format);
     fflush(stdout);
-    fprintf(stderr, "\nFrom: %s:%d\nAt: %s:%zu\nError: ", __FILE__, __LINE__, file, line);
+    fprintf(stderr, "\nAt: %s:%zu\nError: ", file, line);
     vfprintf(stderr, format, args);
+    if (details) {
+        fprintf(stderr, "\nDetails: %s", details);
+    }
     fputs("\n", stderr);
     va_end(args);
     exit(1);

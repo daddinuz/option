@@ -41,6 +41,7 @@ int main() {
     printf("isOk: %s\n", truth(Result_isOk(result)));
     printf("isError: %s\n", truth(Result_isError(result)));
     printf("error: %s\n", Result_explain(result));
+    printf("details: %s\n", Result_details(result));
     // printf("data: %s\n", (const char *) Result_unwrap(result)); /* this would abort */
     assert(TooLongString == Result_inspect(result));
 
@@ -59,7 +60,7 @@ ResultOf(char *, OutOfMemory, TooLongString) SmallString_new(const char *literal
     assert(literal);
 
     if (strlen(literal) > 16) {
-        return Result_error(TooLongString);
+        return Result_errorWithDetails(TooLongString, "Got a literal longer than 16 characters");
     }
 
     OptionOf(char *) optionalString = Option_new(strdup(literal));
