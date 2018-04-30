@@ -33,36 +33,22 @@
 #include <assert.h>
 #include "panic.h"
 
-#define __str(x)    #x
-#define str(x)      __str(x)
+#define _STR(x)    #x
+#define STR(x)      _STR(x)
 
-const char *
-panic_version(void) {
-    return (PANIC_VERSION_IS_RELEASE || sizeof(PANIC_VERSION_SUFFIX) <= 1)
-           ?
-           str(PANIC_VERSION_MAJOR) "."
-           str(PANIC_VERSION_MINOR)
-           "."
-           str(PANIC_VERSION_PATCH)
-           :
-           str(PANIC_VERSION_MAJOR)
-           "."
-           str(PANIC_VERSION_MINOR)
-           "."
-           str(PANIC_VERSION_PATCH)
-           "-"
-           PANIC_VERSION_SUFFIX;
+const char *Panic_version(void) {
+    return STR(PANIC_VERSION_MAJOR) "." STR(PANIC_VERSION_MINOR) "." STR(PANIC_VERSION_PATCH) PANIC_VERSION_SUFFIX;
 }
 
-void __panic(const char *file, int line, const char *format, ...) {
+void __Panic_abort(const char *file, int line, const char *format, ...) {
     assert(file);
     assert(format);
     va_list args;
     va_start(args, format);
-    __panic_variadic(file, line, format, args);
+    __Panic_vabort(file, line, format, args);
 }
 
-void __panic_variadic(const char *file, int line, const char *format, va_list args) {
+void __Panic_vabort(const char *file, int line, const char *format, va_list args) {
     assert(file);
     assert(format);
     fprintf(stderr, "\nAt: %s:%d\n", file, line);

@@ -38,9 +38,6 @@ extern "C" {
 #define __attribute__(...)
 #endif
 
-/*
- * Versioning
- */
 #define PANIC_VERSION_MAJOR       0
 #define PANIC_VERSION_MINOR       1
 #define PANIC_VERSION_PATCH       0
@@ -52,7 +49,7 @@ extern "C" {
  * @return The semantic versioning string of the package.
  */
 extern const char *
-panic_version(void)
+Panic_version(void)
 __attribute__((__warn_unused_result__));
 
 /**
@@ -60,7 +57,7 @@ __attribute__((__warn_unused_result__));
  * @warning this function should not be called directly, use the exported macro instead.
  */
 extern void
-__panic(const char *file, int line, const char *format, ...)
+__Panic_abort(const char *file, int line, const char *format, ...)
 __attribute__((__nonnull__(1, 3), __format__(__printf__, 3, 4), __noreturn__));
 
 /**
@@ -71,15 +68,15 @@ __attribute__((__nonnull__(1, 3), __format__(__printf__, 3, 4), __noreturn__));
  * @warning this function should not be called directly, use the exported macro instead.
  */
 extern void
-__panic_variadic(const char *file, int line, const char *format, va_list args)
+__Panic_vabort(const char *file, int line, const char *format, va_list args)
 __attribute__((__nonnull__(1, 3), __format__(__printf__, 3, 0), __noreturn__));
 
 /**
  * This macro acts like a wrapper over __panic function passing the right
  * call coordinates (file and line number) for a better error report.
  */
-#define panic(...) \
-    __panic(__FILE__, __LINE__, __VA_ARGS__)
+#define Panic_abort(...) \
+    __Panic_abort(__FILE__, __LINE__, __VA_ARGS__)
 
 #ifdef __cplusplus
 }
