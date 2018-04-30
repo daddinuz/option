@@ -26,18 +26,50 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <errno.h>
 #include <stdio.h>
-#include <option.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include "panic.h"
 
-int main() {
-    printf("%s %s!\n",
-           (const char *) unwrap(Result_ok("Hello")),
-           (const char *) unwrap(Option_new("World")));
+#define __str(x)    #x
+#define str(x)      __str(x)
 
-    printf("%s %s!\n",
-           (const char *) expect(Result_ok("Hello"), "Expected a string."),
-           (const char *) expect(Option_new("World"), "Expected a string."));
+const char *
+panic_version(void) {
+    return (PANIC_VERSION_IS_RELEASE || sizeof(PANIC_VERSION_SUFFIX) <= 1)
+           ?
+           str(PANIC_VERSION_MAJOR) "."
+           str(PANIC_VERSION_MINOR)
+           "."
+           str(PANIC_VERSION_PATCH)
+           :
+           str(PANIC_VERSION_MAJOR)
+           "."
+           str(PANIC_VERSION_MINOR)
+           "."
+           str(PANIC_VERSION_PATCH)
+           "-"
+           PANIC_VERSION_SUFFIX;
+}
 
-    unwrap(Ok);
-    expect(Ok, "Expected no errors");
+void __panic(const char *file, int line, const char *format, ...) {
+    assert(file);
+    assert(format);
+    va_list args;
+    va_start(args, format);
+    __panic_variadic(file, line, format, args);
+}
+
+void __panic_variadic(const char *file, int line, const char *format, va_list args) {
+    assert(file);
+    assert(format);
+    fprintf(stderr, "\nAt: %s:%d\n", file, line);
+    if (errno != 0) {
+        fprintf(stderr, "errno: (%d) %s\n", errno, strerror(errno));
+    }
+    vfprintf(stderr, format, args);
+    va_end(args);
+    abort();
 }

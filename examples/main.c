@@ -28,45 +28,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#include <string.h>
 #include <assert.h>
-#include <panic/panic.h>
-#include "option.h"
+#include <option.h>
 
-#define _STR(x)    #x
-#define STR(x)      _STR(x)
-
-const char *Option_version(void) {
-    return STR(OPTION_VERSION_MAJOR) "." STR(OPTION_VERSION_MINOR) "." STR(OPTION_VERSION_PATCH) OPTION_VERSION_SUFFIX;
+OptionOf(char *) String_new(const char *literal) {
+    assert(literal);
+    char *copy = strdup(literal);
+    return copy ? Option_some(copy) : None;
 }
 
-const Option None = {.__value=NULL};
+int main() {
+    OptionOf(char *) option = String_new("Just a string");
 
-Option Option_some(void *const value) {
-    assert(value);
-    return (Option) {.__value=value};
-}
-
-bool Option_isSome(const Option self) {
-    return NULL != self.__value;
-}
-
-bool Option_isNone(const Option self) {
-    return NULL == self.__value;
-}
-
-void *__Option_expect(const char *const file, const int line, const Option self, const char *const format, ...) {
-    assert(file);
-    assert(format);
-    if (Option_isNone(self)) {
-        va_list args;
-        va_start(args, format);
-        __panic_variadic(file, line, format, args);
+    if (Option_isSome(option)) {
+        char *string = Option_unwrap(option);
+        printf("Value: %s\n", string);
+        free(string);
+    } else {
+        printf("Error: %s\n", "Out of memory");
     }
-    return self.__value;
-}
 
-void *__Option_unwrap(const char *const file, const int line, const Option self) {
-    assert(file);
-    return __Option_expect(file, line, self, "Error: %s.\n", "Unable to unwrap value.");
+    return 0;
 }
