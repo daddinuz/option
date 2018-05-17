@@ -1,15 +1,16 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8)
 project(option C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
 
+# dependencies
 include_directories(deps)
-include(deps/panic/panic.cmake)
+include(deps/panic/build.cmake)
 
-add_library(option sources/option.h sources/option.c)
-target_link_libraries(option PRIVATE panic)
+# archive
+include_directories(sources)
+include(sources/build.cmake)
 
-add_executable(main examples/main.c)
-target_link_libraries(main PRIVATE option)
-target_include_directories(main PRIVATE sources)
+# examples
+include(examples/build.cmake)
