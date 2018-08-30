@@ -38,21 +38,159 @@ extern "C" {
 #endif
 
 #define OPTION_VERSION_MAJOR        0
-#define OPTION_VERSION_MINOR        24
+#define OPTION_VERSION_MINOR        25
 #define OPTION_VERSION_PATCH        0
 #define OPTION_VERSION_SUFFIX       ""
 #define OPTION_VERSION_IS_RELEASE   0
-#define OPTION_VERSION_HEX          0x002400
+#define OPTION_VERSION_HEX          0x002500
 
 /**
  * An option type or option type is a polymorphic type that represents encapsulation of an optional value;
  * e.g. it is used as the return type of functions which may or may not return a meaningful value when they are applied.
- *
+ */
+
+/**
+ * Option variants
+ */
+enum OptionVariant {
+    OptionVariant_None, OptionVariant_Some
+};
+
+/**
+ * The type of the value wrapped by an `Option`
+ */
+typedef const void *OptionView_Value;
+
+/**
  * @attention this struct must be treated as opaque therefore its members must not be accessed directly.
  */
 typedef struct {
-    void *__value;
-    enum { OptionNone, OptionSome } __variant;
+    OptionView_Value __value;
+    enum OptionVariant __variant;
+} OptionView;
+
+/**
+ * An helper macro used for type hinting, useful when writing interfaces.
+ * By convention the annotated type is the wrapped value type.
+ */
+#define OptionViewOf(type) \
+    OptionView
+
+/**
+ * The `NoneView` instance used to represent the absence of a value.
+ */
+extern const OptionView NoneView;
+
+/**
+ * Creates an `OptionView` wrapping a value.
+ */
+extern OptionView OptionView_some(OptionView_Value value)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Creates an `OptionView` wrapping a value.
+ * If value is `NULL` returns an `OptionVariant_None` else returns an `OptionVariant_Some`.
+ */
+extern OptionView OptionView_fromNullable(OptionView_Value value)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Returns `true` if this `OptionView` is an `OptionVariant_None`, `false` otherwise.
+ */
+extern bool OptionView_isNone(OptionView self)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Returns `true` if this `OptionView` is an `OptionVariant_Some`, `false` otherwise.
+ */
+extern bool OptionView_isSome(OptionView self)
+__attribute__((__warn_unused_result__));
+
+/**
+ * If this `OptionView` is an `OptionVariant_Some`, apply `f` on this value else return an `OptionVariant_None`.
+ *
+ * @attention f must not be `NULL`.
+ */
+extern OptionView OptionView_map(OptionView self, OptionView f(OptionView_Value))
+__attribute__((__warn_unused_result__, __nonnull__(2)));
+
+/**
+ * If this `OptionView` is an `OptionVariant_Some` then it will be returned, if it is an `OptionVariant_None` the next `OptionView will be returned`.
+ */
+extern OptionView OptionView_alt(OptionView self, OptionView a)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Chains several possibly failing computations.
+ *
+ * @attention f must not be `NULL`.
+ */
+extern OptionView OptionView_chain(OptionView self, OptionView f(OptionView_Value))
+__attribute__((__warn_unused_result__, __nonnull__(2)));
+
+/**
+ * Applies a function to each case in this `OptionView`.
+ *
+ * @attention whenNone must not be `NULL`.
+ * @attention whenSome must not be `NULL`.
+ */
+extern OptionView_Value
+OptionView_fold(OptionView self, OptionView_Value whenNone(void), OptionView_Value whenSome(OptionView_Value))
+__attribute__((__warn_unused_result__, __nonnull__(2, 3)));
+
+/**
+ * Returns the value from this `OptionView` if it's an `OptionVariant_Some` or a default value if this is an `OptionVariant_None`.
+ */
+extern OptionView_Value OptionView_getOr(OptionView self, OptionView_Value defaultValue)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Returns the value from this `OptionView` if it's an `OptionVariant_Some` or compute a value if this is an `OptionVariant_None`.
+ *
+ * @attention f must not be `NULL`.
+ */
+extern OptionView_Value OptionView_getOrElse(OptionView self, OptionView_Value f(void))
+__attribute__((__warn_unused_result__, __nonnull__(2)));
+
+/**
+ * Unwraps the value of this `OptionView` if it's an `OptionVariant_Some` or panics if this is an `OptionVariant_None`.
+ */
+#define OptionView_unwrap(self) \
+    __OptionView_unwrap((__FILE__), (__LINE__), (self))
+
+/**
+ * Unwraps the value of this `OptionView` if it's an `OptionVariant_Some` or panics if this is an `OptionVariant_None` and prints a custom message.
+ */
+#define OptionView_expect(self, ...) \
+    __OptionView_expect((__FILE__), (__LINE__), (self), __VA_ARGS__)
+
+/**
+ * @attention this function must be treated as opaque therefore must not be called directly.
+ */
+extern OptionView_Value __OptionView_unwrap(const char *file, int line, OptionView self)
+__attribute__((__nonnull__(1)));
+
+/**
+ * @attention this function must be treated as opaque therefore must not be called directly.
+ */
+extern OptionView_Value __OptionView_expect(const char *file, int line, OptionView self, const char *format, ...)
+__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+
+/*
+ *
+ */
+
+/**
+ * The type of the value wrapped by an `Option`
+ */
+typedef void *Option_Value;
+
+/**
+ * @attention this struct must be treated as opaque therefore its members must not be accessed directly.
+ */
+typedef struct {
+    Option_Value __value;
+    enum OptionVariant __variant;
 } Option;
 
 /**
@@ -68,40 +206,46 @@ typedef struct {
 extern const Option None;
 
 /**
- * Creates a `Option` wrapping a value.
+ * Creates an `Option` wrapping a value.
  */
-extern Option Option_some(void *value)
+extern Option Option_some(Option_Value value)
 __attribute__((__warn_unused_result__));
 
 /**
- * Creates a `Option` wrapping a value.
- * If value is `NULL` returns `None` else returns a `OptionSome` variant.
+ * Creates an `Option` wrapping a value.
+ * If value is `NULL` returns an `OptionVariant_None` else returns an `OptionVariant_Some`.
  */
-extern Option Option_fromNullable(void *value)
+extern Option Option_fromNullable(Option_Value value)
 __attribute__((__warn_unused_result__));
 
 /**
- * Returns `true` if this `Option` is `None`, `false` otherwise.
+ * Creates an `OptionView` from this `Option`.
+ */
+extern OptionView Option_toView(Option self)
+__attribute__((__warn_unused_result__));
+
+/**
+ * Returns `true` if this `Option` is an `OptionVariant_None`, `false` otherwise.
  */
 extern bool Option_isNone(Option self)
 __attribute__((__warn_unused_result__));
 
 /**
- * Returns `true` if this `Option` is a `OptionSome` variant, `false` otherwise.
+ * Returns `true` if this `Option` is an `OptionVariant_Some`, `false` otherwise.
  */
 extern bool Option_isSome(Option self)
 __attribute__((__warn_unused_result__));
 
 /**
- * If this `Option` is a `OptionSome` variant, apply `f` on this value else return `None`.
+ * If this `Option` is an `OptionVariant_Some`, apply `f` on this value else return an `OptionVariant_None`.
  *
  * @attention f must not be `NULL`.
  */
-extern Option Option_map(Option self, Option f(void *))
+extern Option Option_map(Option self, Option f(Option_Value))
 __attribute__((__warn_unused_result__, __nonnull__(2)));
 
 /**
- * If this `Option` is a `OptionSome` variant then it will be returned, if it is a `None` the next `Option will be returned`.
+ * If this `Option` is an `OptionVariant_Some` then it will be returned, if it is an `OptionVariant_None` the next `Option will be returned`.
  */
 extern Option Option_alt(Option self, Option a)
 __attribute__((__warn_unused_result__));
@@ -111,7 +255,7 @@ __attribute__((__warn_unused_result__));
  *
  * @attention f must not be `NULL`.
  */
-extern Option Option_chain(Option self, Option f(void *))
+extern Option Option_chain(Option self, Option f(Option_Value))
 __attribute__((__warn_unused_result__, __nonnull__(2)));
 
 /**
@@ -120,31 +264,31 @@ __attribute__((__warn_unused_result__, __nonnull__(2)));
  * @attention whenNone must not be `NULL`.
  * @attention whenSome must not be `NULL`.
  */
-extern void *Option_fold(Option self, void *whenNone(void), void *whenSome(void *))
+extern Option_Value Option_fold(Option self, Option_Value whenNone(void), Option_Value whenSome(Option_Value))
 __attribute__((__warn_unused_result__, __nonnull__(2, 3)));
 
 /**
- * Returns the value from this `Option` if it's a `OptionSome` variant or a default value if this is a `None`.
+ * Returns the value from this `Option` if it's an `OptionVariant_Some` or a default value if this is an `OptionVariant_None`.
  */
-extern void *Option_getOr(Option self, void *defaultValue)
+extern Option_Value Option_getOr(Option self, Option_Value defaultValue)
 __attribute__((__warn_unused_result__));
 
 /**
- * Returns the value from this `Option` if it's a `OptionSome` variant or compute a value if this is a `None`.
+ * Returns the value from this `Option` if it's an `OptionVariant_Some` or compute a value if this is an `OptionVariant_None`.
  *
  * @attention f must not be `NULL`.
  */
-extern void *Option_getOrElse(Option self, void *f(void))
+extern Option_Value Option_getOrElse(Option self, Option_Value f(void))
 __attribute__((__warn_unused_result__, __nonnull__(2)));
 
 /**
- * Unwraps the value of this `Option` if it's a `OptionSome` variant or panics if this is a `None`.
+ * Unwraps the value of this `Option` if it's an `OptionVariant_Some` or panics if this is an `OptionVariant_None`.
  */
 #define Option_unwrap(self) \
     __Option_unwrap((__FILE__), (__LINE__), (self))
 
 /**
- * Unwraps the value of this `Option` if it's a `OptionSome` variant or panics if this is a `None` and prints a custom message.
+ * Unwraps the value of this `Option` if it's an `OptionVariant_Some` or panics if this is an `OptionVariant_None` and prints a custom message.
  */
 #define Option_expect(self, ...) \
     __Option_expect((__FILE__), (__LINE__), (self), __VA_ARGS__)
@@ -152,13 +296,13 @@ __attribute__((__warn_unused_result__, __nonnull__(2)));
 /**
  * @attention this function must be treated as opaque therefore must not be called directly.
  */
-extern void *__Option_unwrap(const char *file, int line, Option self)
+extern Option_Value __Option_unwrap(const char *file, int line, Option self)
 __attribute__((__nonnull__(1)));
 
 /**
  * @attention this function must be treated as opaque therefore must not be called directly.
  */
-extern void *__Option_expect(const char *file, int line, Option self, const char *format, ...)
+extern Option_Value __Option_expect(const char *file, int line, Option self, const char *format, ...)
 __attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
 
 #ifdef __cplusplus

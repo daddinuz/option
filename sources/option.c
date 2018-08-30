@@ -30,25 +30,100 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <panic/panic.h>
 #include "option.h"
 
-const Option None = {.__value=NULL, .__variant=OptionNone};
+const OptionView NoneView = {.__value=NULL, .__variant=OptionVariant_None};
 
-Option Option_some(void *const value) {
-    return (Option) {.__value=value, .__variant=OptionSome};
+OptionView OptionView_some(const OptionView_Value value) {
+    return (OptionView) {.__value=value, .__variant=OptionVariant_Some};
 }
 
-Option Option_fromNullable(void *const value) {
+OptionView OptionView_fromNullable(const OptionView_Value value) {
+    return NULL == value ? NoneView : OptionView_some(value);
+}
+
+bool OptionView_isNone(const OptionView self) {
+    return OptionVariant_None == self.__variant;
+}
+
+bool OptionView_isSome(const OptionView self) {
+    return OptionVariant_Some == self.__variant;
+}
+
+OptionView OptionView_map(const OptionView self, OptionView (*const f)(OptionView_Value)) {
+    assert(NULL != f);
+    return OptionView_isNone(self) ? NoneView : f(OptionView_unwrap(self));
+}
+
+OptionView OptionView_alt(const OptionView self, const OptionView a) {
+    return OptionView_isNone(self) ? a : self;
+}
+
+OptionView OptionView_chain(const OptionView self, OptionView (*const f)(OptionView_Value)) {
+    assert(NULL != f);
+    return OptionView_isNone(self) ? NoneView : f(OptionView_unwrap(self));
+}
+
+OptionView_Value
+OptionView_fold(const OptionView self, OptionView_Value (*const whenNone)(void),
+                OptionView_Value (*const whenSome)(OptionView_Value)) {
+    assert(NULL != whenNone);
+    assert(NULL != whenSome);
+    return OptionView_isNone(self) ? whenNone() : whenSome(OptionView_unwrap(self));
+}
+
+OptionView_Value OptionView_getOr(const OptionView self, const OptionView_Value defaultValue) {
+    return OptionView_isNone(self) ? defaultValue : OptionView_unwrap(self);
+}
+
+OptionView_Value OptionView_getOrElse(const OptionView self, OptionView_Value (*const f)(void)) {
+    assert(NULL != f);
+    return OptionView_isNone(self) ? f() : OptionView_unwrap(self);
+}
+
+OptionView_Value __OptionView_unwrap(const char *const file, const int line, const OptionView self) {
+    assert(NULL != file);
+    assert(line > 0);
+    if (OptionView_isNone(self)) {
+        __Panic_terminate(file, line, "%s", "Unable to unwrap value");
+    }
+    return self.__value;
+}
+
+OptionView_Value
+__OptionView_expect(const char *const file, const int line, const OptionView self, const char *const format, ...) {
+    assert(NULL != file);
+    assert(line > 0);
+    assert(NULL != format);
+    if (OptionView_isNone(self)) {
+        va_list args;
+        va_start(args, format);
+        __Panic_vterminate(file, line, format, args);
+    }
+    return self.__value;
+}
+
+const Option None = {.__value=NULL, .__variant=OptionVariant_None};
+
+Option Option_some(const Option_Value value) {
+    return (Option) {.__value=value, .__variant=OptionVariant_Some};
+}
+
+Option Option_fromNullable(const Option_Value value) {
     return NULL == value ? None : Option_some(value);
 }
 
+OptionView Option_toView(const Option self) {
+    return (OptionView) {.__value=self.__value, .__variant=self.__variant};
+}
+
 bool Option_isNone(const Option self) {
-    return OptionNone == self.__variant;
+    return OptionVariant_None == self.__variant;
 }
 
 bool Option_isSome(const Option self) {
-    return OptionSome == self.__variant;
+    return OptionVariant_Some == self.__variant;
 }
 
-Option Option_map(const Option self, Option (*const f)(void *)) {
+Option Option_map(const Option self, Option (*const f)(Option_Value)) {
     assert(NULL != f);
     return Option_isNone(self) ? None : f(Option_unwrap(self));
 }
@@ -57,27 +132,28 @@ Option Option_alt(const Option self, const Option a) {
     return Option_isNone(self) ? a : self;
 }
 
-Option Option_chain(const Option self, Option (*const f)(void *)) {
+Option Option_chain(const Option self, Option (*const f)(Option_Value)) {
     assert(NULL != f);
     return Option_isNone(self) ? None : f(Option_unwrap(self));
 }
 
-void *Option_fold(const Option self, void *(*const whenNone)(void), void *(*const whenSome)(void *)) {
+Option_Value
+Option_fold(const Option self, Option_Value (*const whenNone)(void), Option_Value (*const whenSome)(Option_Value)) {
     assert(NULL != whenNone);
     assert(NULL != whenSome);
     return Option_isNone(self) ? whenNone() : whenSome(Option_unwrap(self));
 }
 
-void *Option_getOr(const Option self, void *const defaultValue) {
+Option_Value Option_getOr(const Option self, const Option_Value defaultValue) {
     return Option_isNone(self) ? defaultValue : Option_unwrap(self);
 }
 
-void *Option_getOrElse(const Option self, void *(*const f)(void)) {
+Option_Value Option_getOrElse(const Option self, Option_Value (*const f)(void)) {
     assert(NULL != f);
     return Option_isNone(self) ? f() : Option_unwrap(self);
 }
 
-void *__Option_unwrap(const char *const file, const int line, const Option self) {
+Option_Value __Option_unwrap(const char *const file, const int line, const Option self) {
     assert(NULL != file);
     assert(line > 0);
     if (Option_isNone(self)) {
@@ -86,7 +162,7 @@ void *__Option_unwrap(const char *const file, const int line, const Option self)
     return self.__value;
 }
 
-void *__Option_expect(const char *const file, const int line, const Option self, const char *const format, ...) {
+Option_Value __Option_expect(const char *const file, const int line, const Option self, const char *const format, ...) {
     assert(NULL != file);
     assert(line > 0);
     assert(NULL != format);
