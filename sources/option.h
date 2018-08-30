@@ -38,11 +38,11 @@ extern "C" {
 #endif
 
 #define OPTION_VERSION_MAJOR        0
-#define OPTION_VERSION_MINOR        23
+#define OPTION_VERSION_MINOR        24
 #define OPTION_VERSION_PATCH        0
 #define OPTION_VERSION_SUFFIX       ""
 #define OPTION_VERSION_IS_RELEASE   0
-#define OPTION_VERSION_HEX          0x002300
+#define OPTION_VERSION_HEX          0x002400
 
 /**
  * An option type or option type is a polymorphic type that represents encapsulation of an optional value;
@@ -51,8 +51,8 @@ extern "C" {
  * @attention this struct must be treated as opaque therefore its members must not be accessed directly.
  */
 typedef struct {
-    void *const __value;
-    const enum { OptionNone, OptionSome } __variant;
+    void *__value;
+    enum { OptionNone, OptionSome } __variant;
 } Option;
 
 /**
