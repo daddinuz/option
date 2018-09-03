@@ -1,7 +1,7 @@
 {
   "name": "option",
   "repo": "daddinuz/option",
-  "version": "0.25.0",
+  "version": "1.0.0",
   "license": "MIT",
   "description": "Monadic option type.",
   "keywords": [
@@ -14,7 +14,7 @@
     "sources/option.h"
   ],
   "dependencies": {
-    "daddinuz/panic": "0.3.0"
+    "daddinuz/panic": "1.0.0"
   },
   "makefile": "sources/build.cmake"
 }

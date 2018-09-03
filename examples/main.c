@@ -28,44 +28,48 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <stdio.h>
 #include <option.h>
-#include <stdlib.h>
+#include <assert.h>
 
-double *Number(const double n) {
-    double *self = malloc(sizeof(*self));
-    *self = n;
-    return self;
-}
+typedef const double *Number;
 
-Option divide(const double a, const double b) {
-    if (0 == b) {
-        return None;
-    }
-    return Option_some(Number(a / b));
-}
+static Number zero(void);
+static Number Number_new(double number);
 
-Option squareRoot(void *out) {
-    double *number = out;
-    if (*number < 0) {
-        return None;
-    } else {
-        *number = sqrt(*number);
-        return Option_some(number);
-    }
-}
-
-void *square(void *out) {
-    double *number = out;
-    *number = (*number) * (*number);
-    return out;
-}
-
-void *zero(void) {
-    return Number(0);
-}
+static OptionOf(Number) ln(Number number);
+static OptionOf(Number) division(Number dividend, Number divisor);
+static OptionOf(Number) squareRoot(Number number);
 
 int main() {
-    double *number = Option_fold(Option_chain(divide(20, 0), squareRoot), zero, square);
-    printf("Result: %f\n", *number);
-    free(number);
+    Number number = Option_fold(Option_chain(division(Number_new(32), Number_new(4)), squareRoot), zero, ln);
+    printf("Number is: %f\n", *number);
     return 0;
+}
+
+/*
+ *
+ */
+static double numbers[4] = {};
+static double *numbersCursor = numbers;
+static const double *numbersEnd = numbers + sizeof(numbers) / sizeof(numbers[0]);
+
+Number zero(void) {
+    static const double instance = 0;
+    return &instance;
+}
+
+Number Number_new(const double number) {
+    assert(numbersCursor <= numbersEnd);
+    return (0 == number) ? zero() : (*numbersCursor = number, numbersCursor++);
+}
+
+OptionOf(Number) ln(Number number) {
+    return *number < 0 ? None : Option_some(Number_new(log(*number)));
+}
+
+OptionOf(Number) division(Number dividend, Number divisor) {
+    return 0 == divisor ? None : Option_some(Number_new(*dividend / *divisor));
+}
+
+OptionOf(Number) squareRoot(Number number) {
+    return *number < 0 ? None : Option_some(Number_new(sqrt(*number)));
 }
