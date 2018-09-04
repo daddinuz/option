@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
 # dependencies
 include_directories(deps)
 include(deps/panic/build.cmake)
+include(deps/traits-unit/build.cmake)
 
 # archive
 include_directories(sources)
@@ -14,3 +15,6 @@ include(sources/build.cmake)
 
 # examples
 include(examples/build.cmake)
+
+# tests
+include(tests/unit/build.cmake)
