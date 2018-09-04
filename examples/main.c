@@ -32,15 +32,20 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 typedef const double *Number;
 
-static Number zero(void);
 static Number Number_new(double number);
 
+static Number zero(void);
 static Number cube(Number number);
 static OptionOf(Number) division(Number dividend, Number divisor);
 static OptionOf(Number) squareRoot(Number number);
 
 int main() {
-    Number number = Option_fold(Option_chain(division(Number_new(36), Number_new(4)), squareRoot), zero, cube);
+    Number number = Option_unwrap(
+            Option_alt(
+                    Option_map(Option_chain(division(Number_new(36), Number_new(4)), squareRoot), cube),
+                    Option_some(zero())
+            )
+    );
     printf("Number is: %f\n", *number);
     return 0;
 }
@@ -52,14 +57,14 @@ static double numbers[4] = {};
 static double *numbersCursor = numbers;
 static const double *numbersEnd = numbers + sizeof(numbers) / sizeof(numbers[0]);
 
-Number zero(void) {
-    static const double instance = 0;
-    return &instance;
-}
-
 Number Number_new(const double number) {
     assert(numbersCursor <= numbersEnd);
     return (*zero() == number) ? zero() : (*numbersCursor = number, numbersCursor++);
+}
+
+Number zero(void) {
+    static const double instance = 0;
+    return &instance;
 }
 
 Number cube(Number number) {
