@@ -35,12 +35,12 @@ typedef const double *Number;
 static Number zero(void);
 static Number Number_new(double number);
 
-static OptionOf(Number) ln(Number number);
+static Number cube(Number number);
 static OptionOf(Number) division(Number dividend, Number divisor);
 static OptionOf(Number) squareRoot(Number number);
 
 int main() {
-    Number number = Option_fold(Option_chain(division(Number_new(32), Number_new(4)), squareRoot), zero, ln);
+    Number number = Option_fold(Option_chain(division(Number_new(36), Number_new(4)), squareRoot), zero, cube);
     printf("Number is: %f\n", *number);
     return 0;
 }
@@ -59,17 +59,17 @@ Number zero(void) {
 
 Number Number_new(const double number) {
     assert(numbersCursor <= numbersEnd);
-    return (0 == number) ? zero() : (*numbersCursor = number, numbersCursor++);
+    return (*zero() == number) ? zero() : (*numbersCursor = number, numbersCursor++);
 }
 
-OptionOf(Number) ln(Number number) {
-    return *number < 0 ? None : Option_some(Number_new(log(*number)));
+Number cube(Number number) {
+    return Number_new(pow(*number, 3));
 }
 
 OptionOf(Number) division(Number dividend, Number divisor) {
-    return 0 == divisor ? None : Option_some(Number_new(*dividend / *divisor));
+    return *divisor == 0.0 ? None : Option_some(Number_new(*dividend / *divisor));
 }
 
 OptionOf(Number) squareRoot(Number number) {
-    return *number < 0 ? None : Option_some(Number_new(sqrt(*number)));
+    return *number < 0.0 ? None : Option_some(Number_new(sqrt(*number)));
 }
