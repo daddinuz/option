@@ -51,12 +51,12 @@ bool Option_isSome(const Option self) {
 
 Option Option_map(const Option self, const void *(*const f)(const void *)) {
     Panic_when(NULL == f);
-    return Option_isNone(self) ? self : Option_some(f(Option_unwrap(self)));
+    return Option_isNone(self) ? self : Option_fromNullable(f(Option_unwrap(self)));
 }
 
-Option Option_mapNullable(const Option self, const void *(*const f)(const void *)) {
+Option Option_chain(const Option self, Option (*const f)(const void *)) {
     Panic_when(NULL == f);
-    return Option_isNone(self) ? self : Option_fromNullable(f(Option_unwrap(self)));
+    return Option_isNone(self) ? self : f(Option_unwrap(self));
 }
 
 Option Option_alt(const Option self, const Option other) {
@@ -66,61 +66,6 @@ Option Option_alt(const Option self, const Option other) {
 Option Option_orElse(const Option self, Option (*const f)(void)) {
     Panic_when(NULL == f);
     return Option_isSome(self) ? self : f();
-}
-
-Option Option_chain(const Option self, Option (*const f)(const void *)) {
-    Panic_when(NULL == f);
-    return Option_isNone(self) ? self : f(Option_unwrap(self));
-}
-
-Option Option_chainAsMutable(const Option self, Option (*const f)(void *)) {
-    Panic_when(NULL == f);
-    return Option_isNone(self) ? self : f(Option_unwrapAsMutable(self));
-}
-
-const void *
-Option_fold(const Option self, const void *(*const whenNone)(void), const void *(*const whenSome)(const void *)) {
-    Panic_when(NULL == whenNone);
-    Panic_when(NULL == whenSome);
-    return Option_isNone(self) ? whenNone() : whenSome(Option_unwrap(self));
-}
-
-void *Option_foldAsMutable(const Option self, void *(*const whenNone)(void), void *(*const whenSome)(void *)) {
-    Panic_when(NULL == whenNone);
-    Panic_when(NULL == whenSome);
-    return Option_isNone(self) ? whenNone() : whenSome(Option_unwrapAsMutable(self));
-}
-
-const void *Option_getOr(const Option self, const void *const defaultValue) {
-    Panic_when(NULL == defaultValue);
-    return Option_isSome(self) ? Option_unwrap(self) : defaultValue;
-}
-
-void *Option_getAsMutableOr(const Option self, void *const defaultValue) {
-    Panic_when(NULL == defaultValue);
-    return Option_isSome(self) ? Option_unwrapAsMutable(self) : defaultValue;
-}
-
-const void *Option_getOrElse(const Option self, const void *(*const f)(void)) {
-    Panic_when(NULL == f);
-    if (Option_isSome(self)) {
-        return Option_unwrap(self);
-    } else {
-        const void *value = f();
-        Panic_when(NULL == value);
-        return value;
-    }
-}
-
-void *Option_getAsMutableOrElse(const Option self, void *(*const f)(void)) {
-    Panic_when(NULL == f);
-    if (Option_isSome(self)) {
-        return Option_unwrapAsMutable(self);
-    } else {
-        void *value = f();
-        Panic_when(NULL == value);
-        return value;
-    }
 }
 
 const void *__Option_unwrap(const char *const file, const int line, const Option self) {

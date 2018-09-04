@@ -96,20 +96,20 @@ extern bool Option_isSome(Option self)
 __attribute__((__warn_unused_result__));
 
 /**
- * If this `Option` is wrapping a value, apply `f` on its value else return `None`.
+ * Returns an `Option` wrapping the result of f applied to the value of this `Option` if this `Option` is not `None` else `None`.
+ * If f returns `NULL`, this functions will return `None`.
  *
  * @attention f must not be `NULL`.
- * @attention is not allowed for f to return `NULL`. 
  */
 extern Option Option_map(Option self, const void *f(const void *))
 __attribute__((__warn_unused_result__));
 
 /**
- * If this `Option` is wrapping a value, apply `f` on its value else return `None`.
+ * Chains several possibly failing computations.
  *
  * @attention f must not be `NULL`.
  */
-extern Option Option_mapNullable(Option self, const void *f(const void *))
+extern Option Option_chain(Option self, Option f(const void *))
 __attribute__((__warn_unused_result__));
 
 /**
@@ -124,74 +124,6 @@ __attribute__((__warn_unused_result__));
  * @attention f must not be `NULL`.
  */
 extern Option Option_orElse(Option self, Option f(void))
-__attribute__((__warn_unused_result__));
-
-/**
- * Chains several possibly failing computations.
- *
- * @attention f must not be `NULL`.
- */
-extern Option Option_chain(Option self, Option f(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Chains several possibly failing computations allowing the value of this `Option` to be mutate.
- *
- * @attention f must not be `NULL`.
- */
-extern Option Option_chainAsMutable(Option self, Option f(void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Applies a function to each case in this `Option`.
- *
- * @attention whenNone must not be `NULL`.
- * @attention whenSome must not be `NULL`.
- */
-extern const void *Option_fold(Option self, const void *whenNone(void), const void *whenSome(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Applies a function to each case in this `Option` allowing the value to be mutate.
- *
- * @attention whenNone must not be `NULL`.
- * @attention whenSome must not be `NULL`.
- */
-extern void *Option_foldAsMutable(Option self, void *whenNone(void), void *whenSome(void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns a default value if this `Option` is `None`, the wrapped value otherwise.
- *
- * @attention defaultValue must not be `NULL`.
- */
-extern const void *Option_getOr(Option self, const void *defaultValue)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns a default value if this `Option` is `None`, the wrapped value otherwise, allowing the value to be mutate.
- *
- * @attention defaultValue must not be `NULL`.
- */
-extern void *Option_getAsMutableOr(Option self, void *defaultValue)
-__attribute__((__warn_unused_result__));
-
-/**
- * Lazy version of `Option_getOr(...)`.
- *
- * @attention f must not be `NULL`.
- * @attention is not allowed for f to return `NULL`.
- */
-extern const void *Option_getOrElse(Option self, const void *f(void))
-__attribute__((__warn_unused_result__));
-
-/**
- * Lazy version of `Option_getOrElse(...)`.
- *
- * @attention f must not be `NULL`.
- * @attention is not allowed for f to return `NULL`.
- */
-extern void *Option_getAsMutableOrElse(Option self, void *f(void))
 __attribute__((__warn_unused_result__));
 
 /**
