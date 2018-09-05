@@ -127,25 +127,25 @@ extern Option Option_orElse(Option self, Option f(void))
 __attribute__((__warn_unused_result__));
 
 /**
- * Unwraps the value of this `Option` if it's an `OptionSome` or panics if this is an `OptionNone`.
+ * Unwraps the value of this `Option` if this `Option` is wrapping a value else panics.
  */
 #define Option_unwrap(self) \
     __Option_unwrap((__FILE__), (__LINE__), (self))
 
 /**
- * Unwraps as mutable the value of this `Option` if it's an `OptionSome` or panics if this is an `OptionNone`.
+ * Unwraps as mutable the value of this `Option` if this `Option` is wrapping a value else panics.
  */
 #define Option_unwrapAsMutable(self) \
     __Option_unwrapAsMutable((__FILE__), (__LINE__), (self))
 
 /**
- * Unwraps the value of this `Option` if it's an `OptionSome` or panics if this is an `OptionNone` and prints a custom message.
+ * Unwraps the value of this `Option` if this `Option` is wrapping a value else panics printing a custom message.
  */
 #define Option_expect(self, ...) \
     __Option_expect((__FILE__), (__LINE__), (self), __VA_ARGS__)
 
 /**
- * Unwraps as mutable the value of this `Option` if it's an `OptionSome` or panics if this is an `OptionNone` and prints a custom message.
+ * Unwraps as mutable the value of this `Option` if this `Option` is wrapping a value else panics printing a custom message.
  */
 #define Option_expectAsMutable(self, ...) \
     __Option_expectAsMutable((__FILE__), (__LINE__), (self), __VA_ARGS__)
