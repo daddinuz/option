@@ -98,9 +98,14 @@ Feature(Option_map) {
     }
 }
 
-Option chainNone(const void *_) {
+Option chainFromNone(const void *_) {
     (void) _;
     assert_true(false);
+    return None;
+}
+
+Option chainFromSomeToNone(const void *_) {
+    (void) _;
     return None;
 }
 
@@ -109,14 +114,15 @@ Option chainSome(const void *_) {
     return Option_some("B");
 }
 
-Option chainSomeToNone(const void *_) {
-    (void) _;
-    return None;
-}
-
 Feature(Option_chain) {
     {
-        const Option sut = Option_chain(None, chainNone);
+        const Option sut = Option_chain(None, chainFromNone);
+        assert_true(Option_isNone(sut));
+        assert_false(Option_isSome(sut));
+    }
+
+    {
+        const Option sut = Option_chain(Option_some("A"), chainFromSomeToNone);
         assert_true(Option_isNone(sut));
         assert_false(Option_isSome(sut));
     }
@@ -126,12 +132,6 @@ Feature(Option_chain) {
         assert_false(Option_isNone(sut));
         assert_true(Option_isSome(sut));
         assert_string_equal(Option_unwrap(sut), "B");
-    }
-
-    {
-        const Option sut = Option_chain(Option_some("A"), chainSomeToNone);
-        assert_true(Option_isNone(sut));
-        assert_false(Option_isSome(sut));
     }
 }
 
@@ -153,20 +153,30 @@ Feature(Option_alt) {
     }
 }
 
-Option orElse(void) {
+Option orElseNone(void) {
+    return None;
+}
+
+Option orElseSome(void) {
     return Option_some("X");
 }
 
 Feature(Option_orElse) {
     {
-        const Option sut = Option_orElse(None, orElse);
+        const Option sut = Option_orElse(None, orElseNone);
+        assert_true(Option_isNone(sut));
+        assert_false(Option_isSome(sut));
+    }
+
+    {
+        const Option sut = Option_orElse(None, orElseSome);
         assert_false(Option_isNone(sut));
         assert_true(Option_isSome(sut));
         assert_string_equal(Option_unwrap(sut), "X");
     }
 
     {
-        const Option sut = Option_orElse(Option_some("A"), orElse);
+        const Option sut = Option_orElse(Option_some("A"), orElseSome);
         assert_false(Option_isNone(sut));
         assert_true(Option_isSome(sut));
         assert_string_equal(Option_unwrap(sut), "A");
