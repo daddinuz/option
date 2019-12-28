@@ -1,8 +1,5 @@
 /*
- * Author: daddinuz
- * email:  daddinuz@gmail.com
- *
- * Copyright (c) 2018 Davide Di Carlo
+ * Copyright (c) 2019 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once
+
+#include <trace/trace.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -33,79 +38,89 @@
 #include <memory.h>
 #include <stdbool.h>
 
-
-#ifndef TRAITS_INCLUDED
-#define TRAITS_INCLUDED
-
-#define TRAITS_VERSION_MAJOR                        3
-#define TRAITS_VERSION_MINOR                        2
-#define TRAITS_VERSION_PATCH                        0
-#define TRAITS_VERSION_SUFFIX                       ""
-#define TRAITS_VERSION_IS_RELEASE                   1
-#define TRAITS_VERSION_HEX                          0x030200
-
-#if !(defined(__GNUC__) || defined(__clang__))
+#if !defined(__GNUC__)
 #define __attribute__(...)
 #endif
 
-#define __TRAITS_CAT_IMPL_(x, ...)                  x ## __VA_ARGS__
-#define __TRAITS_CAT(x, ...)                        __TRAITS_CAT_IMPL_(x, __VA_ARGS__)
+static inline void
+__traits_assert(bool condition, const char *__trace, const char *__assertion, const char *__format, ...)
+__attribute__((nonnull(2, 3), __format__(__printf__, 4, 5)));
 
-#define __TRAITS_TO_STRING_IMPL_(x)                 #x
-#define __TRAITS_TO_STRING(x)                       __TRAITS_TO_STRING_IMPL_(x)
+static inline void
+__traits_assert(const bool condition, const char *const __trace, const char *const __assertion, const char *const __format, ...) {
+    if (!condition) {
+        fprintf(stderr, "At '%s'\r\nAssertion `%s` failed.\r\n", __trace, __assertion);
+        if (NULL != __format) {
+            va_list args;
+            va_start(args, __format);
+            vfprintf(stderr, __format, args);
+            va_end(args);
+        }
+        abort();
+    }
+}
 
-#define __TRAITS_MORE_THAN_ONE_IMPL_(/**/   \
-        _1, _2, _3, _4, _5, _6, _7, _8, \
-        _9, _a, _b, _c, _d, _e, _f, _g, \
-        _h, _i, _j, _k, _l, _m, _n, _o, \
-        _p, _q, _r, _s, _t, _u, _v, _w, \
+#define __traits_tokenJoinPhase2(x, ...)            x ## __VA_ARGS__
+#define __traits_tokenJoin(x, ...)                  __traits_tokenJoinPhase2(x, __VA_ARGS__)
+
+#define __traits_overloadPack1Selector(\
+        A1, \
+        _11, _12, _13, _14, _15, _16, _17, _18, \
+        _21, _22, _23, _24, _25, _26, _27, _28, \
+        _31, _32, _33, _34, _35, _36, _37, _38, \
+        _41, _42, _43, _44, _45, _46, _47, _48, \
         N, ...)                                     N
 
-#define __TRAITS_MORE_THAN_ONE(...)                 __TRAITS_MORE_THAN_ONE_IMPL_(           \
-                                                        __VA_ARGS__, 1, 1, 1, 1, 1, 1, 1,   \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        0, 0                                \
+#define __traits_overloadPack1(...)                 __traits_overloadPack1Selector(       \
+                                                        __VA_ARGS__,                      \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        0, __UNUSED__                     \
                                                     )
 
-#define __TRAITS_MORE_THAN_TWO_IMPL_(/**/   \
-        _1, _2, _3, _4, _5, _6, _7, _8, \
-        _9, _a, _b, _c, _d, _e, _f, _g, \
-        _h, _i, _j, _k, _l, _m, _n, _o, \
-        _p, _q, _r, _s, _t, _u, _v, _w, \
-        _x, N, ...)                                 N
+#define __traits_overloadPack2Selector(\
+        A1, A2, \
+        _11, _12, _13, _14, _15, _16, _17, _18, \
+        _21, _22, _23, _24, _25, _26, _27, _28, \
+        _31, _32, _33, _34, _35, _36, _37, _38, \
+        _41, _42, _43, _44, _45, _46, _47, _48, \
+        N, ...)                                     N
 
-#define __TRAITS_MORE_THAN_TWO(...)                 __TRAITS_MORE_THAN_TWO_IMPL_(           \
-                                                        __VA_ARGS__, 1, 1, 1, 1, 1, 1, 1,   \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        0, 0, 0                             \
+#define __traits_overloadPack2(...)                 __traits_overloadPack2Selector(       \
+                                                        __VA_ARGS__,                      \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        0, __UNUSED__                     \
                                                     )
 
-#define __TRAITS_MORE_THAN_THREE_IMPL_(/**/ \
-        _1, _2, _3, _4, _5, _6, _7, _8, \
-        _9, _a, _b, _c, _d, _e, _f, _g, \
-        _h, _i, _j, _k, _l, _m, _n, _o, \
-        _p, _q, _r, _s, _t, _u, _v, _w, \
-        _x, _A, N, ...)                             N
+#define __traits_overloadPack3Selector(\
+        A1, A2, A3, \
+        _11, _12, _13, _14, _15, _16, _17, _18, \
+        _21, _22, _23, _24, _25, _26, _27, _28, \
+        _31, _32, _33, _34, _35, _36, _37, _38, \
+        _41, _42, _43, _44, _45, _46, _47, _48, \
+        N, ...)                                     N
 
-#define __TRAITS_MORE_THAN_THREE(...)               __TRAITS_MORE_THAN_THREE_IMPL_(         \
-                                                        __VA_ARGS__, 1, 1, 1, 1, 1, 1, 1,   \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        1, 1, 1, 1, 1, 1, 1, 1,             \
-                                                        0, 0, 0, 0                          \
+#define __traits_overloadPack3(...)                 __traits_overloadPack3Selector(       \
+                                                        __VA_ARGS__,                      \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        1, 1, 1, 1, 1, 1, 1, 1,           \
+                                                        0, __UNUSED__                     \
                                                     )
 
-#define __TRAITS_STATIC_IF_0(x, y)                  x
-#define __TRAITS_STATIC_IF_1(x, y)                  y
-#define __TRAITS_STATIC_IF(c)                       __TRAITS_CAT(__TRAITS_STATIC_IF_, c)
+#define __traits_constIf0(ff, tt)                   ff
+#define __traits_constIf1(ff, tt)                   tt
+#define __traits_constIf(c)                         __traits_tokenJoin(__traits_constIf, c)
 
-#define __TRAITS_OVERLOAD_ONE(f0, f1, ...)          __TRAITS_STATIC_IF(__TRAITS_MORE_THAN_ONE(__VA_ARGS__))(f0, f1)(__VA_ARGS__)
-#define __TRAITS_OVERLOAD_TWO(f0, f1, ...)          __TRAITS_STATIC_IF(__TRAITS_MORE_THAN_TWO(__VA_ARGS__))(f0, f1)(__VA_ARGS__)
-#define __TRAITS_OVERLOAD_THREE(f0, f1, ...)        __TRAITS_STATIC_IF(__TRAITS_MORE_THAN_THREE(__VA_ARGS__))(f0, f1)(__VA_ARGS__)
+#define __traits_overload1(ff, tt, ...)             __traits_constIf(__traits_overloadPack1(__VA_ARGS__))(ff, tt)(__VA_ARGS__)
+#define __traits_overload2(ff, tt, ...)             __traits_constIf(__traits_overloadPack2(__VA_ARGS__))(ff, tt)(__VA_ARGS__)
+#define __traits_overload3(ff, tt, ...)             __traits_constIf(__traits_overloadPack3(__VA_ARGS__))(ff, tt)(__VA_ARGS__)
 
 /*
  * Helpers
@@ -126,139 +141,100 @@
 #define le_as(T, e, a)                              le(as(T, e), as(T, a))
 
 /*
- * Assertions framework
- */
-static inline const char *
-traits_version(void) {
-    return (TRAITS_VERSION_IS_RELEASE || sizeof(TRAITS_VERSION_SUFFIX) <= 1)
-           ?
-           __TRAITS_TO_STRING(TRAITS_VERSION_MAJOR) "."
-                   __TRAITS_TO_STRING(TRAITS_VERSION_MINOR) "."
-                   __TRAITS_TO_STRING(TRAITS_VERSION_PATCH)
-           :
-           __TRAITS_TO_STRING(TRAITS_VERSION_MAJOR) "."
-                   __TRAITS_TO_STRING(TRAITS_VERSION_MINOR) "."
-                   __TRAITS_TO_STRING(TRAITS_VERSION_PATCH) "-"
-                   TRAITS_VERSION_SUFFIX;
-}
-
-static void
-__traits_assert(bool condition, size_t line, const char *file, const char *assertion, const char *message, ...)
-__attribute__((__format__(__printf__, 5, 6)));
-
-inline void
-__traits_assert(bool condition, size_t line, const char *file, const char *assertion, const char *message, ...) {
-    va_list args;
-    if (!condition) {
-        fprintf(stderr, "At %s:%zu\nAssertion `%s` failed.\n", file, line, assertion);
-        va_start(args, message);
-        vfprintf(stderr, message, args);
-        va_end(args);
-        exit(1);
-    }
-}
-
-#define __traits_helper_x(A, x, ...)                __traits_assert((x), __LINE__, __FILE__, A, __VA_ARGS__)
-#define __traits_helper_0(A, x)                     __traits_helper_x(A, x, NULL)
-#define __traits_helper_1(A, x, ...)                __traits_helper_x(A, x, __VA_ARGS__)
-#define __traits_helper(A, ...)                     __TRAITS_STATIC_IF(__TRAITS_MORE_THAN_ONE(__VA_ARGS__))(__traits_helper_0, __traits_helper_1)(A, __VA_ARGS__)
-
-/*
  * Basic
  */
-#define __traits_assert_x(x, ...)                   do { const bool __traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), eq(true, __traits_x), __VA_ARGS__); } while(false)
-#define __traits_assert_0(x)                        __traits_assert_x(x, NULL)
-#define __traits_assert_1(x, ...)                   __traits_assert_x(x, __VA_ARGS__)
-#define traits_assert(...)                          __TRAITS_OVERLOAD_ONE(__traits_assert_0, __traits_assert_1, __VA_ARGS__)
+#define __assert_that(c, ...)                       __traits_assert((c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_that0(c)                           __assert_that(c, NULL)
+#define __assert_that1(c, ...)                      __assert_that(c, __VA_ARGS__)
+#define assert_that(...)                            __traits_overload1(__assert_that0, __assert_that1, __VA_ARGS__)
 
-#define __assert_that_x(x, ...)                     do { const bool __traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), eq(true, __traits_x), __VA_ARGS__); } while(false)
-#define __assert_that_0(x)                          __assert_that_x(x, NULL)
-#define __assert_that_1(x, ...)                     __assert_that_x(x, __VA_ARGS__)
-#define assert_that(...)                            __TRAITS_OVERLOAD_ONE(__assert_that_0, __assert_that_1, __VA_ARGS__)
+#define traits_assert(...)                          assert_that(__VA_ARGS__)
 
 /*
  * Boolean
  */
-#define __assert_true_x(x, ...)                     do { const bool __traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), eq(true, __traits_x), __VA_ARGS__); } while(false)
-#define __assert_true_0(x)                          __assert_true_x(x, "Expected to be true.\n")
-#define __assert_true_1(x, ...)                     __assert_true_x(x, __VA_ARGS__)
-#define assert_true(...)                            __TRAITS_OVERLOAD_ONE(__assert_true_0, __assert_true_1, __VA_ARGS__)
+#define __assert_true(c, ...)                       __traits_assert(eq(true, c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_true0(c)                           __assert_true(c, "Expected to be true.\r\n")
+#define __assert_true1(c, ...)                      __assert_true(c, __VA_ARGS__)
+#define assert_true(...)                            __traits_overload1(__assert_true0, __assert_true1, __VA_ARGS__)
 
-#define __assert_false_x(x, ...)                    do { const bool __traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), eq(false, __traits_x), __VA_ARGS__); } while(false)
-#define __assert_false_0(x)                         __assert_false_x(x, "Expected to be false.\n")
-#define __assert_false_1(x, ...)                    __assert_false_x(x, __VA_ARGS__)
-#define assert_false(...)                           __TRAITS_OVERLOAD_ONE(__assert_false_0, __assert_false_1, __VA_ARGS__)
+#define __assert_false(c, ...)                      __traits_assert(eq(false, c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_false0(c)                          __assert_false(c, "Expected to be false.\r\n")
+#define __assert_false1(c, ...)                     __assert_false(c, __VA_ARGS__)
+#define assert_false(...)                           __traits_overload1(__assert_false0, __assert_false1, __VA_ARGS__)
 
 /*
  * Numerical
  */
-#define __assert_equal_x(e, a, ...)                 __traits_helper(__TRAITS_TO_STRING(eq(e, a)), eq(e, a), __VA_ARGS__)
-#define __assert_equal_0(e, a)                      __assert_equal_x(e, a, "Expected to be equal.\n")
-#define __assert_equal_1(e, a, ...)                 __assert_equal_x(e, a, __VA_ARGS__)
-#define assert_equal(...)                           __TRAITS_OVERLOAD_TWO(__assert_equal_0, __assert_equal_1, __VA_ARGS__)
+#define __assert_equal(e, a, ...)                   __traits_assert(eq(e, a), __TRACE__, stringify(eq(e, a)), __VA_ARGS__)
+#define __assert_equal0(e, a)                       __assert_equal(e, a, "Expected to be equal.\r\n")
+#define __assert_equal1(e, a, ...)                  __assert_equal(e, a, __VA_ARGS__)
+#define assert_equal(...)                           __traits_overload2(__assert_equal0, __assert_equal1, __VA_ARGS__)
 
-#define __assert_not_equal_x(e, a, ...)             __traits_helper(__TRAITS_TO_STRING(ne(e, a)), ne(e, a), __VA_ARGS__)
-#define __assert_not_equal_0(e, a)                  __assert_not_equal_x(e, a, "Expected to be not equal.\n")
-#define __assert_not_equal_1(e, a, ...)             __assert_not_equal_x(e, a, __VA_ARGS__)
-#define assert_not_equal(...)                       __TRAITS_OVERLOAD_TWO(__assert_not_equal_0, __assert_not_equal_1, __VA_ARGS__)
+#define __assert_not_equal(e, a, ...)               __traits_assert(ne(e, a), __TRACE__, stringify(ne(e, a)), __VA_ARGS__)
+#define __assert_not_equal0(e, a)                   __assert_not_equal(e, a, "Expected to be not equal.\r\n")
+#define __assert_not_equal1(e, a, ...)              __assert_not_equal(e, a, __VA_ARGS__)
+#define assert_not_equal(...)                       __traits_overload2(__assert_not_equal0, __assert_not_equal1, __VA_ARGS__)
 
-#define __assert_greater_x(e, a, ...)               __traits_helper(__TRAITS_TO_STRING(gt(e, a)), gt(e, a), __VA_ARGS__)
-#define __assert_greater_0(e, a)                    __assert_greater_x(e, a, "Expected to be greater.\n")
-#define __assert_greater_1(e, a, ...)               __assert_greater_x(e, a, __VA_ARGS__)
-#define assert_greater(...)                         __TRAITS_OVERLOAD_TWO(__assert_greater_0, __assert_greater_1, __VA_ARGS__)
+#define __assert_greater(e, a, ...)                 __traits_assert(gt(e, a), __TRACE__, stringify(gt(e, a)), __VA_ARGS__)
+#define __assert_greater0(e, a)                     __assert_greater(e, a, "Expected to be greater.\r\n")
+#define __assert_greater1(e, a, ...)                __assert_greater(e, a, __VA_ARGS__)
+#define assert_greater(...)                         __traits_overload2(__assert_greater0, __assert_greater1, __VA_ARGS__)
 
-#define __assert_greater_equal_x(e, a, ...)         __traits_helper(__TRAITS_TO_STRING(ge(e, a)), ge(e, a), __VA_ARGS__)
-#define __assert_greater_equal_0(e, a)              __assert_greater_equal_x(e, a, "Expected to be greater or equal.\n")
-#define __assert_greater_equal_1(e, a, ...)         __assert_greater_equal_x(e, a, __VA_ARGS__)
-#define assert_greater_equal(...)                   __TRAITS_OVERLOAD_TWO(__assert_greater_equal_0, __assert_greater_equal_1, __VA_ARGS__)
+#define __assert_greater_equal(e, a, ...)           __traits_assert(ge(e, a), __TRACE__, stringify(ge(e, a)), __VA_ARGS__)
+#define __assert_greater_equal0(e, a)               __assert_greater_equal(e, a, "Expected to be greater or equal.\r\n")
+#define __assert_greater_equal1(e, a, ...)          __assert_greater_equal(e, a, __VA_ARGS__)
+#define assert_greater_equal(...)                   __traits_overload2(__assert_greater_equal0, __assert_greater_equal1, __VA_ARGS__)
 
-#define __assert_less_x(e, a, ...)                  __traits_helper(__TRAITS_TO_STRING(lt(e, a)), lt(e, a), __VA_ARGS__)
-#define __assert_less_0(e, a)                       __assert_less_x(e, a, "Expected to be less.\n")
-#define __assert_less_1(e, a, ...)                  __assert_less_x(e, a, __VA_ARGS__)
-#define assert_less(...)                            __TRAITS_OVERLOAD_TWO(__assert_less_0, __assert_less_1, __VA_ARGS__)
+#define __assert_less(e, a, ...)                    __traits_assert(lt(e, a), __TRACE__, stringify(lt(e, a)), __VA_ARGS__)
+#define __assert_less0(e, a)                        __assert_less(e, a, "Expected to be less.\r\n")
+#define __assert_less1(e, a, ...)                   __assert_less(e, a, __VA_ARGS__)
+#define assert_less(...)                            __traits_overload2(__assert_less0, __assert_less1, __VA_ARGS__)
 
-#define __assert_less_equal_x(e, a, ...)            __traits_helper(__TRAITS_TO_STRING(le(e, a)), le(e, a), __VA_ARGS__)
-#define __assert_less_equal_0(e, a)                 __assert_less_equal_x(e, a, "Expected to be less or equal.\n")
-#define __assert_less_equal_1(e, a, ...)            __assert_less_equal_x(e, a, __VA_ARGS__)
-#define assert_less_equal(...)                      __TRAITS_OVERLOAD_TWO(__assert_less_equal_0, __assert_less_equal_1, __VA_ARGS__)
+#define __assert_less_equal(e, a, ...)              __traits_assert(le(e, a), __TRACE__, stringify(le(e, a)), __VA_ARGS__)
+#define __assert_less_equal0(e, a)                  __assert_less_equal(e, a, "Expected to be less or equal.\r\n")
+#define __assert_less_equal1(e, a, ...)             __assert_less_equal(e, a, __VA_ARGS__)
+#define assert_less_equal(...)                      __traits_overload2(__assert_less_equal0, __assert_less_equal1, __VA_ARGS__)
 
 /*
  * Pointer
  */
-#define __assert_null_x(x, ...)                     do { const void *__traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), eq(NULL, __traits_x), __VA_ARGS__); } while(false)
-#define __assert_null_0(x)                          __assert_null_x(x, "Expected to be null.\n")
-#define __assert_null_1(x, ...)                     __assert_null_x(x, __VA_ARGS__)
-#define assert_null(...)                            __TRAITS_OVERLOAD_ONE(__assert_null_0, __assert_null_1, __VA_ARGS__)
+#define __assert_null(x, ...)                       __traits_assert(eq(NULL, x), __TRACE__, stringify(x), __VA_ARGS__)
+#define __assert_null0(x)                           __assert_null(x, "Expected to be null.\r\n")
+#define __assert_null1(x, ...)                      __assert_null(x, __VA_ARGS__)
+#define assert_null(...)                            __traits_overload1(__assert_null0, __assert_null1, __VA_ARGS__)
 
-#define __assert_not_null_x(x, ...)                 do { const void *__traits_x = (x); __traits_helper(__TRAITS_TO_STRING(x), ne(NULL, __traits_x), __VA_ARGS__); } while(false)
-#define __assert_not_null_0(x)                      __assert_not_null_x(x, "Expected to be not null.\n")
-#define __assert_not_null_1(x, ...)                 __assert_not_null_x(x, __VA_ARGS__)
-#define assert_not_null(...)                        __TRAITS_OVERLOAD_ONE(__assert_not_null_0, __assert_not_null_1, __VA_ARGS__)
+#define __assert_not_null(x, ...)                   __traits_assert(ne(NULL, x), __TRACE__, stringify(x), __VA_ARGS__)
+#define __assert_not_null0(x)                       __assert_not_null(x, "Expected to be not null.\r\n")
+#define __assert_not_null1(x, ...)                  __assert_not_null(x, __VA_ARGS__)
+#define assert_not_null(...)                        __traits_overload1(__assert_not_null0, __assert_not_null1, __VA_ARGS__)
 
 /*
  * Memory
  */
-#define __assert_memory_equal_x(s, e, a, ...)       do { const size_t __trait_s = (s); const char *const __trait_e = (e), *const __trait_a = (a); __traits_helper(__TRAITS_TO_STRING(eq(0, memcmp(e, a, s))), eq(0, memcmp(__trait_e, __trait_a, __trait_s)), __VA_ARGS__); } while(false)
-#define __assert_memory_equal_0(s, e, a)            __assert_memory_equal_x(s, e, a, "Expected to be equal.\n")
-#define __assert_memory_equal_1(s, e, a, ...)       __assert_memory_equal_x(s, e, a, __VA_ARGS__)
-#define assert_memory_equal(...)                    __TRAITS_OVERLOAD_THREE(__assert_memory_equal_0, __assert_memory_equal_1, __VA_ARGS__)
+#define __assert_memory_equal(e, a, s, ...)         __traits_assert(eq(0, memcmp(e, a, s)), __TRACE__, stringify(eq(0, memcmp(e, a, s))), __VA_ARGS__)
+#define __assert_memory_equal0(e, a, s)             __assert_memory_equal(e, a, s, NULL)
+#define __assert_memory_equal1(e, a, s, ...)        __assert_memory_equal(e, a, s, __VA_ARGS__)
+#define assert_memory_equal(...)                    __traits_overload3(__assert_memory_equal0, __assert_memory_equal1, __VA_ARGS__)
 
-#define __assert_memory_not_equal_x(s, e, a, ...)   do { const size_t __trait_s = (s); const char *const __trait_e = (e), *const __trait_a = (a); __traits_helper(__TRAITS_TO_STRING(ne(0, memcmp(e, a, s))), ne(0, memcmp(__trait_e, __trait_a, __trait_s)), __VA_ARGS__); } while(false)
-#define __assert_memory_not_equal_0(s, e, a)        __assert_memory_not_equal_x(s, e, a, "Expected to be not equal.\n")
-#define __assert_memory_not_equal_1(s, e, a, ...)   __assert_memory_not_equal_x(s, e, a, __VA_ARGS__)
-#define assert_memory_not_equal(...)                __TRAITS_OVERLOAD_THREE(__assert_memory_not_equal_0, __assert_memory_not_equal_1, __VA_ARGS__)
+#define __assert_memory_not_equal(e, a, s, ...)     __traits_assert(ne(0, memcmp(e, a, s)), __TRACE__, stringify(ne(0, memcmp(e, a, s))), __VA_ARGS__)
+#define __assert_memory_not_equal0(e, a, s)         __assert_memory_not_equal(e, a, s, NULL)
+#define __assert_memory_not_equal1(e, a, s, ...)    __assert_memory_not_equal(e, a, s, __VA_ARGS__)
+#define assert_memory_not_equal(...)                __traits_overload3(__assert_memory_not_equal0, __assert_memory_not_equal1, __VA_ARGS__)
 
 /*
  * String
  */
-#define __assert_string_equal_x(e, a, ...)          do { const char *const __trait_e = (e), *const __trait_a = (a); __traits_helper(__TRAITS_TO_STRING(eq(0, strcmp(e, a))), eq(0, strcmp(__trait_e, __trait_a)), __VA_ARGS__); } while(false)
-#define __assert_string_equal_0(e, a)               __assert_string_equal_x(e, a, "Expected to be equal.\n")
-#define __assert_string_equal_1(e, a, ...)          __assert_string_equal_x(e, a, __VA_ARGS__)
-#define assert_string_equal(...)                    __TRAITS_OVERLOAD_TWO(__assert_string_equal_0, __assert_string_equal_1, __VA_ARGS__)
+#define __assert_string_equal(e, a, ...)            __traits_assert(eq(0, strcmp(e, a)), __TRACE__, stringify(eq(0, strcmp(e, a))), __VA_ARGS__)
+#define __assert_string_equal0(e, a)                __assert_string_equal(e, a, "Expected to be equal.\r\n")
+#define __assert_string_equal1(e, a, ...)           __assert_string_equal(e, a, __VA_ARGS__)
+#define assert_string_equal(...)                    __traits_overload2(__assert_string_equal0, __assert_string_equal1, __VA_ARGS__)
 
-#define __assert_string_not_equal_x(e, a, ...)      do { const char *const __trait_e = (e), *const __trait_a = (a); __traits_helper(__TRAITS_TO_STRING(ne(0, strcmp(e, a))), ne(0, strcmp(__trait_e, __trait_a)), __VA_ARGS__); } while(false)
-#define __assert_string_not_equal_0(e, a)           __assert_string_not_equal_x(e, a, "Expected to be not equal.\n")
-#define __assert_string_not_equal_1(e, a, ...)      __assert_string_not_equal_x(e, a, __VA_ARGS__)
-#define assert_string_not_equal(...)                __TRAITS_OVERLOAD_TWO(__assert_string_not_equal_0, __assert_string_not_equal_1, __VA_ARGS__)
+#define __assert_string_not_equal(e, a, ...)        __traits_assert(ne(0, strcmp(e, a)), __TRACE__, stringify(ne(0, strcmp(e, a))), __VA_ARGS__)
+#define __assert_string_not_equal0(e, a)            __assert_string_not_equal(e, a, "Expected to be not equal.\r\n")
+#define __assert_string_not_equal1(e, a, ...)       __assert_string_not_equal(e, a, __VA_ARGS__)
+#define assert_string_not_equal(...)                __traits_overload2(__assert_string_not_equal0, __assert_string_not_equal1, __VA_ARGS__)
 
-#endif /* TRAITS_INCLUDED */
+#ifdef __cplusplus
+}
+#endif

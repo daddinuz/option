@@ -2,31 +2,32 @@
 
 [![Build Status](https://travis-ci.org/daddinuz/option.svg?branch=master)](https://travis-ci.org/daddinuz/option)
 
-An option type or maybe type is a polymorphic type that represents encapsulation of an optional value; 
+An option type is a type that represents encapsulation of an optional value;
 e.g. it is used as the return type of functions which may or may not return a meaningful value when they are applied.
 
 ```C
-
+/*
+ * .h
+ */
 #include <stdio.h>
+#include <option.h>
 
-typedef const double *Number;
+OptionDeclare(OptionalNumber, double)
 
-static Number Number_new(double number);
-
-static Number zero(void);
-static Number cube(Number number);
-static OptionOf(Number) division(Number dividend, Number divisor);
-static OptionOf(Number) squareRoot(Number number);
+struct OptionalNumber divide(double numerator, double denominator);
 
 int main() {
-    Number number = Option_unwrap(
-            Option_alt(
-                    Option_map(Option_chain(division(Number_new(36), Number_new(4)), squareRoot), cube),
-                    Option_some(zero())
-            )
-    );
-    printf("Number is: %f\n", *number);
+    struct OptionalNumber number = divide(18, 0);
+    printf("%f\n", OptionalNumber_expect(number, "'%s': expected a number", __TRACE__));
     return 0;
 }
 
+/*
+ * .c
+ */
+OptionDefine(OptionalNumber, double)
+
+struct OptionalNumber divide(const double numerator, const double denominator) {
+    return -0.0001 <= denominator && denominator <= 0.0001 ? OptionalNumber_none() : OptionalNumber_some(numerator / denominator);
+}
 ```

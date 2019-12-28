@@ -1,48 +1,47 @@
 /*
-Author: daddinuz
-email:  daddinuz@gmail.com
-
-Copyright (c) 2018 Davide Di Carlo
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Davide Di Carlo
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #pragma once
 
-#include <stdbool.h>
-
-#if !(defined(__GNUC__) || defined(__clang__))
-__attribute__(...)
-#endif
+#include <panic/panic.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define OPTION_VERSION_MAJOR        1
-#define OPTION_VERSION_MINOR        0
-#define OPTION_VERSION_PATCH        0
-#define OPTION_VERSION_SUFFIX       ""
-#define OPTION_VERSION_IS_RELEASE   0
-#define OPTION_VERSION_HEX          0x010000
+#include <stdbool.h>
+
+#if !defined(__GNUC__)
+#define __attribute__(...)
+#endif
+
+// internal use only, must not be used directly.
+#define __OPTION_SOME_TAG    0xA5
+#define __OPTION_NONE_TAG    0x5A
 
 /**
  * An option-type or maybe-type is a polymorphic type that represents encapsulation of an optional value;
@@ -50,129 +49,65 @@ extern "C" {
  */
 
 /**
- * @attention this struct must be treated as opaque therefore its members must not be accessed directly.
- */
-typedef struct {
-    const void *__value;
-} Option;
-
-/**
- * An helper macro used for type hinting, useful when writing interfaces.
- * By convention the annotated type is the wrapped value type.
- */
-#define OptionOf(type) \
-    Option
-
-/**
- * The `None` instance used to represent the absence of a value.
- */
-extern const Option None;
-
-/**
- * Constructs a new `Option` wrapping a value.
+ * Macro used to generate declarations of the option type (usually used in .h files).
  *
- * @attention value must not be `NULL`.
+ * @param NewType is the name of the generated option type.
+ * @param Value is the type of the wrapped value.
+ * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-extern Option Option_some(const void *value)
-__attribute__((__warn_unused_result__));
+#define OptionDeclare(NewType, Value)                                                                                   \
+    struct NewType { Value __value; unsigned char __tag; };                                                             \
+    \
+    extern struct NewType NewType##_some(Value value)                                                                   \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern struct NewType NewType##_none(void)                                                                          \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern bool NewType##_isSome(struct NewType self)                                                                   \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern bool NewType##_isNone(struct NewType self)                                                                   \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern Value NewType##_unwrap(struct NewType self)                                                                  \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern Value NewType##_expect(struct NewType self, const char *fmt, ...)                                            \
+    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));
 
 /**
- * Constructs a new `Option` from a nullable pointer.
- * If the value is `NULL`, returns `None`, otherwise returns the value wrapped in a `Option`
- */
-extern Option Option_fromNullable(const void *value)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns `true` if this `Option` is `None`, `false` otherwise.
- */
-extern bool Option_isNone(Option self)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns `true` if this `Option` is wrapping a value, `false` otherwise.
- */
-extern bool Option_isSome(Option self)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns an `Option` wrapping the result of f applied to the value of this `Option` if this `Option` is not `None` else `None`.
- * If f returns `NULL`, this functions will return `None`.
+ * Macro used to generate definitions of the option type (usually used in .c files).
  *
- * @attention f must not be `NULL`.
+ * @param NewType is the name of the generated option type.
+ * @param Value is the type of the wrapped value.
  */
-extern Option Option_map(Option self, const void *f(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Chains several possibly failing computations.
- *
- * @attention f must not be `NULL`.
- */
-extern Option Option_chain(Option self, Option f(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * If this `Option` is wrapping a value then it will be returned, else the next `Option` will be returned.
- */
-extern Option Option_alt(Option self, Option other)
-__attribute__((__warn_unused_result__));
-
-/**
- * Lazy version of `Option_alt(...)`.
- *
- * @attention f must not be `NULL`.
- */
-extern Option Option_orElse(Option self, Option f(void))
-__attribute__((__warn_unused_result__));
-
-/**
- * Unwraps the value of this `Option` if this `Option` is wrapping a value else panics.
- */
-#define Option_unwrap(self) \
-    __Option_unwrap((__FILE__), (__LINE__), (self))
-
-/**
- * Unwraps as mutable the value of this `Option` if this `Option` is wrapping a value else panics.
- */
-#define Option_unwrapAsMutable(self) \
-    __Option_unwrapAsMutable((__FILE__), (__LINE__), (self))
-
-/**
- * Unwraps the value of this `Option` if this `Option` is wrapping a value else panics printing a custom message.
- */
-#define Option_expect(self, ...) \
-    __Option_expect((__FILE__), (__LINE__), (self), __VA_ARGS__)
-
-/**
- * Unwraps as mutable the value of this `Option` if this `Option` is wrapping a value else panics printing a custom message.
- */
-#define Option_expectAsMutable(self, ...) \
-    __Option_expectAsMutable((__FILE__), (__LINE__), (self), __VA_ARGS__)
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern const void *__Option_unwrap(const char *file, int line, Option self)
-__attribute__((__nonnull__(1)));
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern void *__Option_unwrapAsMutable(const char *file, int line, Option self)
-__attribute__((__nonnull__(1)));
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern const void *__Option_expect(const char *file, int line, Option self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern void *__Option_expectAsMutable(const char *file, int line, Option self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+#define OptionDefine(NewType, Value)                                                                                    \
+    struct NewType NewType##_some(Value value) {                                                                        \
+        return (struct NewType) { .__value = value, .__tag = __OPTION_SOME_TAG };                                       \
+    }                                                                                                                   \
+    \
+    struct NewType NewType##_none(void) {                                                                               \
+        return (struct NewType) { .__tag = __OPTION_NONE_TAG };                                                         \
+    }                                                                                                                   \
+    \
+    bool NewType##_isSome(const struct NewType self) {                                                                  \
+        return __OPTION_SOME_TAG == self.__tag;                                                                         \
+    }                                                                                                                   \
+    \
+    bool NewType##_isNone(const struct NewType self) {                                                                  \
+        return __OPTION_NONE_TAG == self.__tag;                                                                         \
+    }                                                                                                                   \
+    \
+    Value NewType##_unwrap(const struct NewType self) {                                                                 \
+        if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
+        else                                 { panic("unable to unwrap value"); }                                       \
+    }                                                                                                                   \
+    \
+    Value NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                     \
+        if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
+        else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
+    }
 
 #ifdef __cplusplus
 }

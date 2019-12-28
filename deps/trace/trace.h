@@ -25,27 +25,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * .h
- */
-#include <stdio.h>
-#include <option.h>
+#pragma once
 
-OptionDeclare(OptionalNumber, double)
+#include <stringify/stringify.h>
 
-struct OptionalNumber divide(double numerator, double denominator);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int main() {
-    struct OptionalNumber number = divide(18, 0);
-    printf("%f\n", OptionalNumber_expect(number, "'%s': expected a number", __TRACE__));
-    return 0;
+#define __TRACE__   __FILE__ ":" stringify(__LINE__)
+
+#ifdef __cplusplus
 }
-
-/*
- * .c
- */
-OptionDefine(OptionalNumber, double)
-
-struct OptionalNumber divide(const double numerator, const double denominator) {
-    return -0.0001 <= denominator && denominator <= 0.0001 ? OptionalNumber_none() : OptionalNumber_some(numerator / denominator);
-}
+#endif

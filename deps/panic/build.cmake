@@ -28,10 +28,10 @@ option(PANIC_UNWIND_SUPPORT "Stack unwinding support" OFF)
 #  LIBUNWIND_INCLUDE_DIRS - The libunwind include directories
 #  LIBUNWIND_LIBRARIES    - The libraries needed to use libunwind
 #  LIBUNWIND_VERSION      - The version string for libunwind
+
 include(FindPackageHandleStandardArgs)
 
 if (NOT DEFINED LIBUNWIND_FOUND)
-
     # Set default sarch paths for libunwind
     if (LIBUNWIND_ROOT_DIR)
         set(LIBUNWIND_INCLUDE_DIR ${LIBUNWIND_ROOT_DIR}/include CACHE PATH "The include directory for libunwind")
@@ -75,9 +75,11 @@ endif ()
 
 if (PANIC_UNWIND_SUPPORT)
     if (LIBUNWIND_FOUND)
+        target_compile_definitions(${ARCHIVE_NAME} PUBLIC PANIC_UNWIND_SUPPORT=1)
         target_link_libraries(${ARCHIVE_NAME} PRIVATE unwind)
-        add_definitions(-DPANIC_UNWIND_SUPPORT=1)
     else ()
         message(FATAL_ERROR "libunwind required for PANIC_UNWIND_SUPPORT feature but not found")
-    endif ()
+    endif (LIBUNWIND_FOUND)
+else ()
+    target_compile_definitions(${ARCHIVE_NAME} PUBLIC PANIC_UNWIND_SUPPORT=0)
 endif (PANIC_UNWIND_SUPPORT)

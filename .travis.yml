@@ -1,37 +1,23 @@
 language: c
-dist: trusty
+dist: bionic
 
 compiler:
-- gcc
-- clang
-
-sudo: required
-
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-5
-    - g++-5
+  - gcc
+  - clang
 
 before_install:
-- sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
-- sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
-- gcc --version
-- g++ --version
-- sudo apt-get install libcurl4-gnutls-dev --yes
-- git clone https://github.com/clibs/clib.git /tmp/clib
-- cd /tmp/clib
-- make
-- sudo make install
-- cd -
+  - sudo apt install libcurl4-gnutls-dev --yes
+  - git clone https://github.com/clibs/clib.git /tmp/clib
+  - cd /tmp/clib
+  - make
+  - sudo make install
+  - cd -
 
 install: clib install --dev
 
 before_script:
-- mkdir build
-- cd build
-- cmake ..
+  - mkdir build
+  - cd build
+  - cmake ..
 
 script: make && make test

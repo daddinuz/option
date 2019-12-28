@@ -1,8 +1,7 @@
 /*
- * Author: daddinuz
- * email:  daddinuz@gmail.com
+ * The MIT License (MIT)
  *
- * Copyright (c) 2018 Davide Di Carlo
+ * Copyright (c) 2019 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +27,8 @@
 
 #pragma once
 
+#include <stringify/stringify.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,159 +38,121 @@ extern "C" {
 #include <setjmp.h>
 #include <stdbool.h>
 
-#if !(defined(__GNUC__) || defined(__clang__))
+#if !defined(__GNUC__)
 #define __attribute__(...)
 #endif
 
 /* [public section begin] */
 
 /*
-* Versioning
-*/
-#define TRAITS_UNIT_VERSION_MAJOR       3
-#define TRAITS_UNIT_VERSION_MINOR       0
-#define TRAITS_UNIT_VERSION_PATCH       0
-#define TRAITS_UNIT_VERSION_SUFFIX      ""
-#define TRAITS_UNIT_VERSION_IS_RELEASE  1
-#define TRAITS_UNIT_VERSION_HEX         0x030000
-
-/*
  * Constants
  */
-#define TRAITS_UNIT_MAX_TRAITS          96
-#define TRAITS_UNIT_MAX_FEATURES        64
+#define TRAITS_UNIT_MAX_TRAITS      96
+#define TRAITS_UNIT_MAX_FEATURES    64
 
-/*
- * Types
- */
-typedef void *traits_unit_setup_fn(void);
-typedef void traits_unit_teardown_fn(void);
+struct TraitsUnitFixture {
+    void *(*setup)(void);
+    void (*teardown)(void);
+};
 
-typedef struct traits_unit_fixture_t {
-    traits_unit_setup_fn *setup;
-    traits_unit_teardown_fn *teardown;
-} traits_unit_fixture_t;
+struct TraitsUnitFeature {
+    struct TraitsUnitFixture *fixture;
+    const char *feature;
+    void (*call)(void);
+    bool skip;
+};
 
-typedef void traits_unit_feature_fn(void);
+struct TraitsUnitTrait {
+    struct TraitsUnitFeature features[TRAITS_UNIT_MAX_FEATURES];
+    const char *trait;
+};
 
-typedef enum traits_unit_action_t {
-    TRAITS_UNIT_ACTION_RUN,
-    TRAITS_UNIT_ACTION_SKIP,
-    TRAITS_UNIT_ACTION_TODO
-} traits_unit_action_t;
-
-typedef struct traits_unit_feature_t {
-    const char *feature_name;
-    traits_unit_fixture_t *fixture;
-    traits_unit_feature_fn *feature;
-    traits_unit_action_t action;
-} traits_unit_feature_t;
-
-typedef struct traits_unit_trait_t {
-    const char *trait_name;
-    traits_unit_feature_t features[TRAITS_UNIT_MAX_FEATURES];
-} traits_unit_trait_t;
-
-typedef struct traits_unit_subject_t {
+struct TraitsUnitSubject {
+    struct TraitsUnitTrait traits[TRAITS_UNIT_MAX_TRAITS];
     const char *subject;
-    traits_unit_trait_t traits[TRAITS_UNIT_MAX_TRAITS];
-} traits_unit_subject_t;
+};
 
-/*
- * Functions
- */
-extern const char *
-traits_unit_version(void);
+extern void *traitsUnit_getContext(void)
+__attribute__((__warn_unused_result__));
 
-extern void *
-traits_unit_get_context(void);
-
-extern size_t
-traits_unit_get_wrapped_signals_counter(void);
+extern size_t traitsUnit_getWrappedSignalsCounter(void)
+__attribute__((__warn_unused_result__));
 
 /*
  * Declare main in order to force definition by traits-unit
  */
-extern int
-main(int argc, char *argv[]);
+extern int main(int argc, char *argv[]);
 
 /*
  * Macros
  */
-#define Setup(Name)                       \
-    void *__TRAITS_UNIT_SETUP_ID(Name)(void)        // NOLINT
+#define Setup(Name)                                 \
+    void *__traitsUnit_setupId(Name)(void)
 
-#define Teardown(Name)                    \
-    void __TRAITS_UNIT_TEARDOWN_ID(Name)(void)
+#define Teardown(Name)                              \
+    void __traitsUnit_teardownId(Name)(void)
 
-#define Feature(Name)                     \
-    void __TRAITS_UNIT_FEATURE_ID(Name)(void)
+#define Feature(Name)                               \
+    void __traitsUnit_featureId(Name)(void)
 
-#define Fixture(Name)                    \
-    extern traits_unit_fixture_t __TRAITS_UNIT_FIXTURE_ID(Name)
+#define Fixture(Name)                               \
+    extern struct TraitsUnitFixture __traitsUnit_fixtureId(Name)
 
 #define FixtureImplements(Name, Setup, Teardown)    \
-    traits_unit_fixture_t __TRAITS_UNIT_FIXTURE_ID(Name) = {.setup=__TRAITS_UNIT_SETUP_ID(Setup), .teardown=__TRAITS_UNIT_TEARDOWN_ID(Teardown)}
+    struct TraitsUnitFixture __traitsUnit_fixtureId(Name) = {.setup=__traitsUnit_setupId(Setup), .teardown=__traitsUnit_teardownId(Teardown)}
 
-#define Describe(Subject, ...)                  \
-    traits_unit_subject_t traits_unit_subject = {.subject=(Subject), .traits={__VA_ARGS__}};
+#define Describe(Subject, ...)                      \
+    struct TraitsUnitSubject traitsUnitSubject = {.traits={__VA_ARGS__}, .subject=(Subject)};
 
-#define Trait(Name, ...)                        \
-    {.trait_name=(Name), .features={__VA_ARGS__}}
+#define Trait(Name, ...)                            \
+    {.features={__VA_ARGS__}, .trait=(Name)}
 
-#define Run(...)                                \
-    __TRAITS_UNIT_FEATURE_RUN(__VA_ARGS__, __TraitsUnitDefaultFixture, __TraitsUnitDefaultFixture)
+#define Run(...)                                    \
+    __traitsUnit_runFeature(__VA_ARGS__, __TraitsUnitDefaultFixture, __)
 
-#define Skip(...)                               \
-    __TRAITS_UNIT_FEATURE_SKIP(__VA_ARGS__, __TraitsUnitDefaultFixture, __TraitsUnitDefaultFixture)
-
-#define Todo(...)                               \
-    __TRAITS_UNIT_FEATURE_TODO(__VA_ARGS__, __TraitsUnitDefaultFixture, __TraitsUnitDefaultFixture)
+#define Skip(...)                                   \
+    __traitsUnit_skipFeature(__VA_ARGS__, __TraitsUnitDefaultFixture, __)
 
 /*
  * Helper macro to handle signals
  */
-#define traits_unit_wraps(xSignalId)                                                    \
+#define traitsUnit_wrap(signalId)                                                       \
     for (                                                                               \
-        __traits_unit_wraps_enter((xSignalId));                                         \
-        !sigsetjmp(__traits_unit_jump_buffer, true) && __traits_unit_wraps_is_done();   \
-        __traits_unit_wraps_exit()                                                      \
+        struct __TraitsUnitWrapper wrapper = __TraitsUnitWrapper_new((signalId));       \
+        !sigsetjmp(__traitsUnitJumpBuffer, 1) && __TraitsUnitWrapper_update(&wrapper);  \
     )
 
 /* [public section end] */
 
 /* [private section begin] */
 
-#define __TRAITS_UNIT_CAT_IMPL_(x, ...)      x ## __VA_ARGS__
-#define __TRAITS_UNIT_CAT(x, ...)           __TRAITS_UNIT_CAT_IMPL_(x, __VA_ARGS__)
+#define __traitsUnit_tokenJoinPhase2(x, ...)    x ## __VA_ARGS__
+#define __traitsUnit_tokenJoin(x, ...)          __traitsUnit_tokenJoinPhase2(x, __VA_ARGS__)
 
-#define __TRAITS_UNIT_TO_STRING_IMPL_(x)     #x
-#define __TRAITS_UNIT_TO_STRING(x)          __TRAITS_UNIT_TO_STRING_IMPL_(x)
+#define __traitsUnit_setupId(Name)              __traitsUnit_tokenJoin(traitsUnit_userSetup, Name)
+#define __traitsUnit_teardownId(Name)           __traitsUnit_tokenJoin(traitsUnit_userTeardown, Name)
+#define __traitsUnit_fixtureId(Name)            __traitsUnit_tokenJoin(traitsUnit_userFixture, Name)
+#define __traitsUnit_featureId(Name)            __traitsUnit_tokenJoin(traitsUnit_userFeature, Name)
 
-#define __TRAITS_UNIT_SETUP_ID(Name)        __TRAITS_UNIT_CAT(traits_unit_user_setup_, Name)
-#define __TRAITS_UNIT_TEARDOWN_ID(Name)     __TRAITS_UNIT_CAT(traits_unit_user_teardown_, Name)
-#define __TRAITS_UNIT_FIXTURE_ID(Name)      __TRAITS_UNIT_CAT(traits_unit_user_fixture_, Name)
-#define __TRAITS_UNIT_FEATURE_ID(Name)      __TRAITS_UNIT_CAT(traits_unit_user_feature_, Name)
+#define __traitsUnit_runFeature(Name, Fixture, ...)     \
+    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify(Name), .call=__traitsUnit_featureId(Name), .skip=false}
 
-#define __TRAITS_UNIT_FEATURE_RUN(Name, Fixture, ...)               \
-    {.feature_name=__TRAITS_UNIT_TO_STRING(Name), .feature=__TRAITS_UNIT_FEATURE_ID(Name), .fixture=&__TRAITS_UNIT_FIXTURE_ID(Fixture), .action=TRAITS_UNIT_ACTION_RUN}
+#define __traitsUnit_skipFeature(Name, Fixture, ...)    \
+    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify(Name), .call=__traitsUnit_featureId(Name), .skip=true}
 
-#define __TRAITS_UNIT_FEATURE_SKIP(Name, Fixture, ...)              \
-    {.feature_name=__TRAITS_UNIT_TO_STRING(Name), .feature=__TRAITS_UNIT_FEATURE_ID(Name), .fixture=&__TRAITS_UNIT_FIXTURE_ID(Fixture), .action=TRAITS_UNIT_ACTION_SKIP}
+extern jmp_buf __traitsUnitJumpBuffer;
 
-#define __TRAITS_UNIT_FEATURE_TODO(Name, Fixture, ...)              \
-    {.feature_name=__TRAITS_UNIT_TO_STRING(Name), .feature=__TRAITS_UNIT_FEATURE_ID(Name), .fixture=&__TRAITS_UNIT_FIXTURE_ID(Fixture), .action=TRAITS_UNIT_ACTION_TODO}
+struct __TraitsUnitWrapper {
+    void *pimpl;
+    int signalId;
+    unsigned calls;
+};
 
-extern jmp_buf __traits_unit_jump_buffer;
+extern struct __TraitsUnitWrapper __TraitsUnitWrapper_new(int signalId)
+__attribute__((__warn_unused_result__));
 
-extern void
-__traits_unit_wraps_enter(int signal_id);
-
-extern bool
-__traits_unit_wraps_is_done(void);
-
-extern void
-__traits_unit_wraps_exit(void);
+extern bool __TraitsUnitWrapper_update(struct __TraitsUnitWrapper *self)
+__attribute__((__nonnull__));
 
 Fixture(__TraitsUnitDefaultFixture);
 
