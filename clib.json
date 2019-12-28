@@ -1,7 +1,7 @@
 {
   "name": "option",
   "repo": "daddinuz/option",
-  "version": "2.0.0",
+  "version": "2.0.0-alpha.1",
   "license": "MIT",
   "description": "Option type that represents encapsulation of an optional value.",
   "keywords": [
