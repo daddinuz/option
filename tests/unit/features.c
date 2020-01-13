@@ -28,7 +28,7 @@
 #include <traits/traits.h>
 #include "features.h"
 
-OptionDefine(OptionalNumber, double)
+OptionDefine(OptionalNumber, double);
 
 Feature(Option_some) {
     const double value = 5.0;

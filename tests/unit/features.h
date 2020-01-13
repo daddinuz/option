@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-OptionDeclare(OptionalNumber, double)
+OptionDeclare(OptionalNumber, double);
 
 Feature(Option_some);
 Feature(Option_none);

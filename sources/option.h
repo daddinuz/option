@@ -74,7 +74,7 @@ extern "C" {
     __attribute__((__warn_unused_result__));                                                                            \
     \
     extern Value NewType##_expect(struct NewType self, const char *fmt, ...)                                            \
-    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));
+    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the option type (usually used in .c files).
@@ -107,7 +107,9 @@ extern "C" {
     Value NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                     \
         if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
         else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
-    }
+    }                                                                                                                   \
+    \
+    typedef int __option_##NewType##_defined__ /* semi-colon */
 
 #ifdef __cplusplus
 }

@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <option.h>
 
-OptionDeclare(OptionalNumber, double)
+OptionDeclare(OptionalNumber, double);
 
 struct OptionalNumber divide(double numerator, double denominator);
 
@@ -44,7 +44,7 @@ int main() {
 /*
  * .c
  */
-OptionDefine(OptionalNumber, double)
+OptionDefine(OptionalNumber, double);
 
 struct OptionalNumber divide(const double numerator, const double denominator) {
     return -0.0001 <= denominator && denominator <= 0.0001 ? OptionalNumber_none() : OptionalNumber_some(numerator / denominator);
