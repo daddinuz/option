@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+#include <assert.h>
 #include <stdbool.h>
 
 #if !defined(__GNUC__)
@@ -51,65 +52,66 @@ extern "C" {
 /**
  * Macro used to generate declarations of the option type (usually used in .h files).
  *
- * @param NewType is the name of the generated option type.
- * @param Value is the type of the wrapped value.
+ * @param Identifier is the name of the generated option type.
+ * @param Type is the type of the wrapped value.
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-#define OptionDeclare(NewType, Value)                                                                                   \
-    struct NewType { Value __value; unsigned char __tag; };                                                             \
+#define OptionDeclare(Identifier, Type)                                                                                 \
+    struct Identifier { Type __value; unsigned char __tag; };                                                           \
     \
-    extern struct NewType NewType##_some(Value value)                                                                   \
+    extern struct Identifier Identifier##_some(Type value)                                                              \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern struct NewType NewType##_none(void)                                                                          \
+    extern struct Identifier Identifier##_none(void)                                                                    \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool NewType##_isSome(struct NewType self)                                                                   \
+    extern bool Identifier##_isSome(struct Identifier self)                                                             \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool NewType##_isNone(struct NewType self)                                                                   \
+    extern bool Identifier##_isNone(struct Identifier self)                                                             \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern Value NewType##_unwrap(struct NewType self)                                                                  \
+    extern Type Identifier##_unwrap(struct Identifier self)                                                             \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern Value NewType##_expect(struct NewType self, const char *fmt, ...)                                            \
+    extern Type Identifier##_expect(struct Identifier self, const char *fmt, ...)                                       \
     __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the option type (usually used in .c files).
  *
- * @param NewType is the name of the generated option type.
- * @param Value is the type of the wrapped value.
+ * @param Identifier is the name of the generated option type.
+ * @param Type is the type of the wrapped value.
  */
-#define OptionDefine(NewType, Value)                                                                                    \
-    struct NewType NewType##_some(Value value) {                                                                        \
-        return (struct NewType) { .__value = value, .__tag = __OPTION_SOME_TAG };                                       \
+#define OptionDefine(Identifier, Type)                                                                                  \
+    struct Identifier Identifier##_some(Type value) {                                                                   \
+        return (struct Identifier) { .__value = value, .__tag = __OPTION_SOME_TAG };                                    \
     }                                                                                                                   \
     \
-    struct NewType NewType##_none(void) {                                                                               \
-        return (struct NewType) { .__tag = __OPTION_NONE_TAG };                                                         \
+    struct Identifier Identifier##_none(void) {                                                                         \
+        return (struct Identifier) { .__tag = __OPTION_NONE_TAG };                                                      \
     }                                                                                                                   \
     \
-    bool NewType##_isSome(const struct NewType self) {                                                                  \
+    bool Identifier##_isSome(const struct Identifier self) {                                                            \
         return __OPTION_SOME_TAG == self.__tag;                                                                         \
     }                                                                                                                   \
     \
-    bool NewType##_isNone(const struct NewType self) {                                                                  \
+    bool Identifier##_isNone(const struct Identifier self) {                                                            \
         return __OPTION_NONE_TAG == self.__tag;                                                                         \
     }                                                                                                                   \
     \
-    Value NewType##_unwrap(const struct NewType self) {                                                                 \
+    Type Identifier##_unwrap(const struct Identifier self) {                                                            \
         if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
         else                                 { panic("unable to unwrap value"); }                                       \
     }                                                                                                                   \
     \
-    Value NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                     \
+    Type Identifier##_expect(const struct Identifier self, const char *const fmt, ...) {                                \
+        assert(NULL != fmt);                                                                                            \
         if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
         else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
     }                                                                                                                   \
     \
-    typedef int __option_##NewType##_defined__ /* semi-colon */
+    typedef int __option_##Identifier##_defined__ /* semi-colon */
 
 #ifdef __cplusplus
 }
