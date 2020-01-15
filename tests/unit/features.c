@@ -34,16 +34,16 @@ Feature(Option_some) {
     const double value = 5.0;
     struct OptionalNumber sut = OptionalNumber_some(value);
 
-    assert_that(OptionalNumber_isSome(sut));
-    assert_false(OptionalNumber_isNone(sut));
+    assert_that(OptionalNumber_isSome(&sut));
+    assert_false(OptionalNumber_isNone(&sut));
 
     {
-        const double number = OptionalNumber_unwrap(sut);
+        const double number = OptionalNumber_unwrap(&sut);
         assert_equal(value, number);
     }
 
     {
-        const double number = OptionalNumber_expect(sut, "expected a value");
+        const double number = OptionalNumber_expect(&sut, "expected a value");
         assert_equal(value, number);
     }
 }
@@ -51,20 +51,20 @@ Feature(Option_some) {
 Feature(Option_none) {
     struct OptionalNumber sut = OptionalNumber_none();
 
-    assert_that(OptionalNumber_isNone(sut));
-    assert_false(OptionalNumber_isSome(sut));
+    assert_that(OptionalNumber_isNone(&sut));
+    assert_false(OptionalNumber_isSome(&sut));
 
     const size_t sigcount = traitsUnit_getWrappedSignalsCounter();
 
     traitsUnit_wrap(SIGABRT) {
-        const double value = OptionalNumber_unwrap(sut);
+        const double value = OptionalNumber_unwrap(&sut);
         (void) value;
     }
 
     assert_equal(sigcount + 1, traitsUnit_getWrappedSignalsCounter());
 
     traitsUnit_wrap(SIGABRT) {
-        const double value = OptionalNumber_expect(sut, "expected a value");
+        const double value = OptionalNumber_expect(&sut, "expected a value");
         (void) value;
     }
 
