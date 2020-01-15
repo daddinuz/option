@@ -41,8 +41,10 @@ extern "C" {
 #endif
 
 // internal use only, must not be used directly.
-#define __OPTION_SOME_TAG    0xA5
-#define __OPTION_NONE_TAG    0x5A
+typedef unsigned char __OptionTag;
+
+#define __OPTION_SOME_TAG    0xA5u
+#define __OPTION_NONE_TAG    0x5Au
 
 /**
  * An option-type or maybe-type is a polymorphic type that represents encapsulation of an optional value;
@@ -52,66 +54,70 @@ extern "C" {
 /**
  * Macro used to generate declarations of the option type (usually used in .h files).
  *
- * @param Identifier is the name of the generated option type.
+ * @param Struct is the name of the generated option type.
  * @param Type is the type of the wrapped value.
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-#define OptionDeclare(Identifier, Type)                                                                                 \
-    struct Identifier { Type __value; unsigned char __tag; };                                                           \
+#define OptionDeclare(Struct, Type)                                                                                     \
+    struct Struct { Type __value; __OptionTag __tag; };                                                                 \
     \
-    extern struct Identifier Identifier##_some(Type value)                                                              \
+    extern struct Struct Struct##_some(Type value)                                                                      \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern struct Identifier Identifier##_none(void)                                                                    \
+    extern struct Struct Struct##_none(void)                                                                            \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool Identifier##_isSome(struct Identifier self)                                                             \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern bool Struct##_isSome(const struct Struct *self)                                                              \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern bool Identifier##_isNone(struct Identifier self)                                                             \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern bool Struct##_isNone(const struct Struct *self)                                                              \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern Type Identifier##_unwrap(struct Identifier self)                                                             \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern Type Struct##_unwrap(const struct Struct *self)                                                              \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern Type Identifier##_expect(struct Identifier self, const char *fmt, ...)                                       \
-    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
+    extern Type Struct##_expect(const struct Struct *self, const char *fmt, ...)                                        \
+    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the option type (usually used in .c files).
  *
- * @param Identifier is the name of the generated option type.
+ * @param Struct is the name of the generated option type.
  * @param Type is the type of the wrapped value.
  */
-#define OptionDefine(Identifier, Type)                                                                                  \
-    struct Identifier Identifier##_some(Type value) {                                                                   \
-        return (struct Identifier) { .__value = value, .__tag = __OPTION_SOME_TAG };                                    \
+#define OptionDefine(Struct, Type)                                                                                      \
+    struct Struct Struct##_some(Type value) {                                                                           \
+        return (struct Struct) { .__value = value, .__tag = __OPTION_SOME_TAG };                                        \
     }                                                                                                                   \
     \
-    struct Identifier Identifier##_none(void) {                                                                         \
-        return (struct Identifier) { .__tag = __OPTION_NONE_TAG };                                                      \
+    struct Struct Struct##_none(void) {                                                                                 \
+        return (struct Struct) { .__tag = __OPTION_NONE_TAG };                                                          \
     }                                                                                                                   \
     \
-    bool Identifier##_isSome(const struct Identifier self) {                                                            \
-        return __OPTION_SOME_TAG == self.__tag;                                                                         \
+    bool Struct##_isSome(const struct Struct *const self) {                                                             \
+        assert(NULL != self);                                                                                           \
+        return __OPTION_SOME_TAG == self->__tag;                                                                        \
     }                                                                                                                   \
     \
-    bool Identifier##_isNone(const struct Identifier self) {                                                            \
-        return __OPTION_NONE_TAG == self.__tag;                                                                         \
+    bool Struct##_isNone(const struct Struct *const self) {                                                             \
+        assert(NULL != self);                                                                                           \
+        return __OPTION_NONE_TAG == self->__tag;                                                                        \
     }                                                                                                                   \
     \
-    Type Identifier##_unwrap(const struct Identifier self) {                                                            \
-        if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
+    Type Struct##_unwrap(const struct Struct *const self) {                                                             \
+        assert(NULL != self);                                                                                           \
+        if (__OPTION_SOME_TAG == self->__tag) { return self->__value; }                                                 \
         else                                 { panic("unable to unwrap value"); }                                       \
     }                                                                                                                   \
     \
-    Type Identifier##_expect(const struct Identifier self, const char *const fmt, ...) {                                \
+    Type Struct##_expect(const struct Struct *const self, const char *const fmt, ...) {                                 \
+        assert(NULL != self);                                                                                           \
         assert(NULL != fmt);                                                                                            \
-        if (__OPTION_SOME_TAG == self.__tag) { return self.__value; }                                                   \
+        if (__OPTION_SOME_TAG == self->__tag) { return self->__value; }                                                 \
         else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
     }                                                                                                                   \
     \
-    typedef int __option_##Identifier##_defined__ /* semi-colon */
+    static_assert(1, "") /* semi-colon */
 
 #ifdef __cplusplus
 }
