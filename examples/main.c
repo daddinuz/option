@@ -37,7 +37,7 @@ struct OptionalNumber divide(double numerator, double denominator);
 
 int main() {
     struct OptionalNumber number = divide(18, 0);
-    printf("%f\n", OptionalNumber_expect(number, "'%s': expected a number", __TRACE__));
+    printf("%f\n", OptionalNumber_expect(&number, "'%s': expected a number", __TRACE__));
     return 0;
 }
 
