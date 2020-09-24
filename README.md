@@ -6,28 +6,33 @@ An option type is a type that represents encapsulation of an optional value;
 e.g. it is used as the return type of functions which may or may not return a meaningful value when they are applied.
 
 ```C
-/*
- * .h
- */
 #include <stdio.h>
 #include <option.h>
 
-OptionDeclare(OptionalNumber, double);
+/*
+ * .h
+ */
+option_declare(OptionalNumber, double);
 
-struct OptionalNumber divide(double numerator, double denominator);
+OptionalNumber divide(double numerator, double denominator);
 
-int main() {
-    struct OptionalNumber number = divide(18, 0);
-    printf("%f\n", OptionalNumber_expect(&number, "'%s': expected a number", __TRACE__));
+/*
+ * main.c
+ */
+int main(void) {
+    OptionalNumber number = divide(18, 0);
+    printf("%f\n", OptionalNumber_expect(&number, "'%s'\nError: expected a number", TRACE));
     return 0;
 }
 
 /*
  * .c
  */
-OptionDefine(OptionalNumber, double);
+option_define(OptionalNumber, double);
 
-struct OptionalNumber divide(const double numerator, const double denominator) {
-    return -0.0001 <= denominator && denominator <= 0.0001 ? OptionalNumber_none() : OptionalNumber_some(numerator / denominator);
+OptionalNumber divide(const double numerator, const double denominator) {
+    return -0.000001 <= denominator && denominator <= 0.000001
+            ? OptionalNumber_none()
+            : OptionalNumber_some(numerator / denominator);
 }
 ```

@@ -1,7 +1,7 @@
 {
   "name": "traits-unit",
   "repo": "daddinuz/traits-unit",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "license": "MIT",
   "description": "Unittest framework written in C99.",
   "keywords": [
@@ -14,10 +14,10 @@
     "test-framework"
   ],
   "development": {
-    "daddinuz/traits": "4.0.1"
+    "daddinuz/traits": "4.1.0"
   },
   "dependencies": {
-    "daddinuz/trace": "2.0.0"
+    "daddinuz/trace": "3.0.0"
   },
   "src": [
     "sources/traits-unit.h",

@@ -1,7 +1,7 @@
 {
   "name": "option",
   "repo": "daddinuz/option",
-  "version": "2.0.0-alpha.4",
+  "version": "2.0.0-alpha.5",
   "license": "MIT",
   "description": "Option type that represents encapsulation of an optional value.",
   "keywords": [
@@ -12,10 +12,10 @@
     "sources/option.h"
   ],
   "dependencies": {
-    "daddinuz/panic": "2.0.0"
+    "daddinuz/panic": "3.0.0"
   },
   "development": {
-    "daddinuz/traits": "4.0.1",
-    "daddinuz/traits-unit": "4.0.2"
+    "daddinuz/traits": "4.1.0",
+    "daddinuz/traits-unit": "4.1.0"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "panic",
   "repo": "daddinuz/panic",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "license": "MIT",
   "description": "A panic library to abort execution on non-recoverable errors with a detailed message.",
   "keywords": [
@@ -14,11 +14,12 @@
     "sources/panic.c"
   ],
   "development": {
-    "daddinuz/traits": "4.0.1",
-    "daddinuz/traits-unit": "4.0.2"
+    "daddinuz/traits": "4.1.0",
+    "daddinuz/traits-unit": "4.1.0"
   },
   "dependencies": {
-    "daddinuz/trace": "2.0.0"
+    "daddinuz/trace": "3.0.0",
+    "daddinuz/stringify": "3.0.0"
   },
   "makefile": "sources/build.cmake"
 }

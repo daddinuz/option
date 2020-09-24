@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,18 +28,18 @@
 #include <traits/traits.h>
 #include "features.h"
 
-OptionDefine(OptionalNumber, double);
+option_define(OptionalNumber, double);
 
 Feature(Option_some) {
     const double value = 5.0;
-    struct OptionalNumber sut = OptionalNumber_some(value);
+    OptionalNumber sut = OptionalNumber_some(value);
 
     assert_that(OptionalNumber_isSome(&sut));
     assert_false(OptionalNumber_isNone(&sut));
 
     {
         const double number = OptionalNumber_unwrap(&sut);
-        assert_equal(value, number);
+        assert_equal(value, number, "%f %f\n", value, number);
     }
 
     {
@@ -49,7 +49,7 @@ Feature(Option_some) {
 }
 
 Feature(Option_none) {
-    struct OptionalNumber sut = OptionalNumber_none();
+    OptionalNumber sut = OptionalNumber_none();
 
     assert_that(OptionalNumber_isNone(&sut));
     assert_false(OptionalNumber_isSome(&sut));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <stringify/stringify.h>
 #include <trace/trace.h>
 
 #ifdef __cplusplus
@@ -143,7 +144,7 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * Basic
  */
-#define __assert_that(c, ...)                       __traits_assert((c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_that(c, ...)                       __traits_assert((c), TRACE, stringify_lazyQuote(c), __VA_ARGS__)
 #define __assert_that0(c)                           __assert_that(c, NULL)
 #define __assert_that1(c, ...)                      __assert_that(c, __VA_ARGS__)
 #define assert_that(...)                            __traits_overload1(__assert_that0, __assert_that1, __VA_ARGS__)
@@ -153,12 +154,12 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * Boolean
  */
-#define __assert_true(c, ...)                       __traits_assert(eq(true, c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_true(c, ...)                       __traits_assert(eq(true, c), TRACE, stringify_lazyQuote(c), __VA_ARGS__)
 #define __assert_true0(c)                           __assert_true(c, "Expected to be true.\r\n")
 #define __assert_true1(c, ...)                      __assert_true(c, __VA_ARGS__)
 #define assert_true(...)                            __traits_overload1(__assert_true0, __assert_true1, __VA_ARGS__)
 
-#define __assert_false(c, ...)                      __traits_assert(eq(false, c), __TRACE__, stringify(c), __VA_ARGS__)
+#define __assert_false(c, ...)                      __traits_assert(eq(false, c), TRACE, stringify_lazyQuote(c), __VA_ARGS__)
 #define __assert_false0(c)                          __assert_false(c, "Expected to be false.\r\n")
 #define __assert_false1(c, ...)                     __assert_false(c, __VA_ARGS__)
 #define assert_false(...)                           __traits_overload1(__assert_false0, __assert_false1, __VA_ARGS__)
@@ -166,32 +167,32 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * Numerical
  */
-#define __assert_equal(e, a, ...)                   __traits_assert(eq(e, a), __TRACE__, stringify(eq(e, a)), __VA_ARGS__)
+#define __assert_equal(e, a, ...)                   __traits_assert(eq(e, a), TRACE, stringify_lazyQuote(eq(e, a)), __VA_ARGS__)
 #define __assert_equal0(e, a)                       __assert_equal(e, a, "Expected to be equal.\r\n")
 #define __assert_equal1(e, a, ...)                  __assert_equal(e, a, __VA_ARGS__)
 #define assert_equal(...)                           __traits_overload2(__assert_equal0, __assert_equal1, __VA_ARGS__)
 
-#define __assert_not_equal(e, a, ...)               __traits_assert(ne(e, a), __TRACE__, stringify(ne(e, a)), __VA_ARGS__)
+#define __assert_not_equal(e, a, ...)               __traits_assert(ne(e, a), TRACE, stringify_lazyQuote(ne(e, a)), __VA_ARGS__)
 #define __assert_not_equal0(e, a)                   __assert_not_equal(e, a, "Expected to be not equal.\r\n")
 #define __assert_not_equal1(e, a, ...)              __assert_not_equal(e, a, __VA_ARGS__)
 #define assert_not_equal(...)                       __traits_overload2(__assert_not_equal0, __assert_not_equal1, __VA_ARGS__)
 
-#define __assert_greater(e, a, ...)                 __traits_assert(gt(e, a), __TRACE__, stringify(gt(e, a)), __VA_ARGS__)
+#define __assert_greater(e, a, ...)                 __traits_assert(gt(e, a), TRACE, stringify_lazyQuote(gt(e, a)), __VA_ARGS__)
 #define __assert_greater0(e, a)                     __assert_greater(e, a, "Expected to be greater.\r\n")
 #define __assert_greater1(e, a, ...)                __assert_greater(e, a, __VA_ARGS__)
 #define assert_greater(...)                         __traits_overload2(__assert_greater0, __assert_greater1, __VA_ARGS__)
 
-#define __assert_greater_equal(e, a, ...)           __traits_assert(ge(e, a), __TRACE__, stringify(ge(e, a)), __VA_ARGS__)
+#define __assert_greater_equal(e, a, ...)           __traits_assert(ge(e, a), TRACE, stringify_lazyQuote(ge(e, a)), __VA_ARGS__)
 #define __assert_greater_equal0(e, a)               __assert_greater_equal(e, a, "Expected to be greater or equal.\r\n")
 #define __assert_greater_equal1(e, a, ...)          __assert_greater_equal(e, a, __VA_ARGS__)
 #define assert_greater_equal(...)                   __traits_overload2(__assert_greater_equal0, __assert_greater_equal1, __VA_ARGS__)
 
-#define __assert_less(e, a, ...)                    __traits_assert(lt(e, a), __TRACE__, stringify(lt(e, a)), __VA_ARGS__)
+#define __assert_less(e, a, ...)                    __traits_assert(lt(e, a), TRACE, stringify_lazyQuote(lt(e, a)), __VA_ARGS__)
 #define __assert_less0(e, a)                        __assert_less(e, a, "Expected to be less.\r\n")
 #define __assert_less1(e, a, ...)                   __assert_less(e, a, __VA_ARGS__)
 #define assert_less(...)                            __traits_overload2(__assert_less0, __assert_less1, __VA_ARGS__)
 
-#define __assert_less_equal(e, a, ...)              __traits_assert(le(e, a), __TRACE__, stringify(le(e, a)), __VA_ARGS__)
+#define __assert_less_equal(e, a, ...)              __traits_assert(le(e, a), TRACE, stringify_lazyQuote(le(e, a)), __VA_ARGS__)
 #define __assert_less_equal0(e, a)                  __assert_less_equal(e, a, "Expected to be less or equal.\r\n")
 #define __assert_less_equal1(e, a, ...)             __assert_less_equal(e, a, __VA_ARGS__)
 #define assert_less_equal(...)                      __traits_overload2(__assert_less_equal0, __assert_less_equal1, __VA_ARGS__)
@@ -199,12 +200,12 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * Pointer
  */
-#define __assert_null(x, ...)                       __traits_assert(eq(NULL, x), __TRACE__, stringify(x), __VA_ARGS__)
+#define __assert_null(x, ...)                       __traits_assert(eq(NULL, x), TRACE, stringify_lazyQuote(x), __VA_ARGS__)
 #define __assert_null0(x)                           __assert_null(x, "Expected to be null.\r\n")
 #define __assert_null1(x, ...)                      __assert_null(x, __VA_ARGS__)
 #define assert_null(...)                            __traits_overload1(__assert_null0, __assert_null1, __VA_ARGS__)
 
-#define __assert_not_null(x, ...)                   __traits_assert(ne(NULL, x), __TRACE__, stringify(x), __VA_ARGS__)
+#define __assert_not_null(x, ...)                   __traits_assert(ne(NULL, x), TRACE, stringify_lazyQuote(x), __VA_ARGS__)
 #define __assert_not_null0(x)                       __assert_not_null(x, "Expected to be not null.\r\n")
 #define __assert_not_null1(x, ...)                  __assert_not_null(x, __VA_ARGS__)
 #define assert_not_null(...)                        __traits_overload1(__assert_not_null0, __assert_not_null1, __VA_ARGS__)
@@ -212,12 +213,12 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * Memory
  */
-#define __assert_memory_equal(e, a, s, ...)         __traits_assert(eq(0, memcmp(e, a, s)), __TRACE__, stringify(eq(0, memcmp(e, a, s))), __VA_ARGS__)
+#define __assert_memory_equal(e, a, s, ...)         __traits_assert(eq(0, memcmp(e, a, s)), TRACE, stringify_lazyQuote(eq(0, memcmp(e, a, s))), __VA_ARGS__)
 #define __assert_memory_equal0(e, a, s)             __assert_memory_equal(e, a, s, NULL)
 #define __assert_memory_equal1(e, a, s, ...)        __assert_memory_equal(e, a, s, __VA_ARGS__)
 #define assert_memory_equal(...)                    __traits_overload3(__assert_memory_equal0, __assert_memory_equal1, __VA_ARGS__)
 
-#define __assert_memory_not_equal(e, a, s, ...)     __traits_assert(ne(0, memcmp(e, a, s)), __TRACE__, stringify(ne(0, memcmp(e, a, s))), __VA_ARGS__)
+#define __assert_memory_not_equal(e, a, s, ...)     __traits_assert(ne(0, memcmp(e, a, s)), TRACE, stringify_lazyQuote(ne(0, memcmp(e, a, s))), __VA_ARGS__)
 #define __assert_memory_not_equal0(e, a, s)         __assert_memory_not_equal(e, a, s, NULL)
 #define __assert_memory_not_equal1(e, a, s, ...)    __assert_memory_not_equal(e, a, s, __VA_ARGS__)
 #define assert_memory_not_equal(...)                __traits_overload3(__assert_memory_not_equal0, __assert_memory_not_equal1, __VA_ARGS__)
@@ -225,12 +226,12 @@ __traits_assert(const bool condition, const char *const __trace, const char *con
 /*
  * String
  */
-#define __assert_string_equal(e, a, ...)            __traits_assert(eq(0, strcmp(e, a)), __TRACE__, stringify(eq(0, strcmp(e, a))), __VA_ARGS__)
+#define __assert_string_equal(e, a, ...)            __traits_assert(eq(0, strcmp(e, a)), TRACE, stringify_lazyQuote(eq(0, strcmp(e, a))), __VA_ARGS__)
 #define __assert_string_equal0(e, a)                __assert_string_equal(e, a, "Expected to be equal.\r\n")
 #define __assert_string_equal1(e, a, ...)           __assert_string_equal(e, a, __VA_ARGS__)
 #define assert_string_equal(...)                    __traits_overload2(__assert_string_equal0, __assert_string_equal1, __VA_ARGS__)
 
-#define __assert_string_not_equal(e, a, ...)        __traits_assert(ne(0, strcmp(e, a)), __TRACE__, stringify(ne(0, strcmp(e, a))), __VA_ARGS__)
+#define __assert_string_not_equal(e, a, ...)        __traits_assert(ne(0, strcmp(e, a)), TRACE, stringify_lazyQuote(ne(0, strcmp(e, a))), __VA_ARGS__)
 #define __assert_string_not_equal0(e, a)            __assert_string_not_equal(e, a, "Expected to be not equal.\r\n")
 #define __assert_string_not_equal1(e, a, ...)       __assert_string_not_equal(e, a, __VA_ARGS__)
 #define assert_string_not_equal(...)                __traits_overload2(__assert_string_not_equal0, __assert_string_not_equal1, __VA_ARGS__)

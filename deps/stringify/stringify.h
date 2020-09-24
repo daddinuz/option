@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,8 @@
 extern "C" {
 #endif
 
-#define __stringify(s)  #s
-#define stringify(s)    __stringify(s)
+#define stringify_quote(s)      #s
+#define stringify_lazyQuote(s)  stringify_quote(s)
 
 #ifdef __cplusplus
 }

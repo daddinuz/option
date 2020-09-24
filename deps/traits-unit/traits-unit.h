@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -135,10 +135,10 @@ extern int main(int argc, char *argv[]);
 #define __traitsUnit_featureId(Name)            __traitsUnit_tokenJoin(traitsUnit_userFeature, Name)
 
 #define __traitsUnit_runFeature(Name, Fixture, ...)     \
-    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify(Name), .call=__traitsUnit_featureId(Name), .skip=false}
+    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify_quote(Name), .call=__traitsUnit_featureId(Name), .skip=false}
 
 #define __traitsUnit_skipFeature(Name, Fixture, ...)    \
-    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify(Name), .call=__traitsUnit_featureId(Name), .skip=true}
+    {.fixture=&__traitsUnit_fixtureId(Fixture), .feature=stringify_quote(Name), .call=__traitsUnit_featureId(Name), .skip=true}
 
 extern jmp_buf __traitsUnitJumpBuffer;
 

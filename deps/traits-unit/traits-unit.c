@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -132,7 +132,7 @@ static void traitsUnit_signalHandler(int signalId);
 /*
  * Define internal macros
  */
-#define traitsUnit_panic(fmt, ...)  do { __traitsUnit_panic(__TRACE__, fmt, __VA_ARGS__); abort(); } while(false)
+#define traitsUnit_panic(fmt, ...)  do { __traitsUnit_panic(TRACE, fmt, __VA_ARGS__); abort(); } while(false)
 
 /*
  * Define public functions

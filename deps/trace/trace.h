@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-#define __TRACE__   __FILE__ ":" stringify(__LINE__)
+#define TRACE   __FILE__ ":" stringify_lazyQuote(__LINE__)
 
 #ifdef __cplusplus
 }
